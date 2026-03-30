@@ -1,0 +1,33 @@
+{
+	"name": "futurern",
+	"module": "index.ts",
+	"scripts": {
+		"dev:client": "bun run --cwd ./client dev",
+		"dev:server": "bun --env-file=./server/.env run --watch ./server/src/index.ts",
+		"dev": "concurrently \"bun run dev:client\" \"bun run dev:server\"",
+		"build:client": "bun run --cwd ./client build",
+		"build": "bun run build:client && bun run build:server",
+		"start": "bun --env-file=./server/.env run ./server/src/index.ts",
+		"prod": "bun run build:client && bun run start"
+	},
+	"devDependencies": {
+		"@types/bun": "latest",
+		"@types/pg": "^8.15.5",
+		"concurrently": "^9.2.1",
+		"drizzle-kit": "^0.31.4",
+		"nodemon": "^3.1.10",
+		"tsx": "^4.20.5"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
+	"private": true,
+	"type": "module",
+	"dependencies": {
+		"better-auth": "^1.3.7",
+		"dotenv": "^17.2.1",
+		"drizzle-orm": "^0.44.5",
+		"pg": "^8.16.3",
+		"zod": "^4.1.5"
+	}
+}

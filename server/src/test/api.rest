@@ -1,0 +1,64 @@
+POST http://localhost:4001/api/v1/tasks/create-task
+Content-Type: application/json
+
+{
+    "task_name": "Task 3",
+    "task_date": "January 27, 2026",
+    "task_type": "Post Test",
+    "task_link": "asasdsadasdd",
+    "user_id" : "F6QJvsQWnOreyq9FbqoVVBkbNdmDKURE"
+  
+}
+
+###
+PUT http://localhost:4001/api/update-task/91601f74-9684-4fe7-bff4-609f550e0250
+Content-Type: application/json
+
+{
+    "task_isComplete": false
+}
+
+###
+GET http://localhost:4001/api/tasks
+
+###
+POST http://localhost:4001/api/register
+Content-Type: application/json
+
+{
+    "name": "John Doe",
+    "email": "user1@example.com",
+    "password": "user12345"
+}
+
+###
+POST http://localhost:4001/login
+Content-Type: application/json
+
+{
+    "email": "user@example.com",
+    "password": "user12345",
+    "rememberMe": true
+}
+
+###
+POST http://localhost:4001/logout
+Content-Type: application/json
+# Cookie: better-auth.session_token=JiF6YxhaiG19sNRyqzkoLXsedlwPoHxi.cDuxf8gPfZAO5OZyJnHD0JzPulK0CSr8kj6zlvmHCjg%3D
+
+###
+POST http://localhost:4001/api/auth/sign-out
+Content-Type: application/json
+
+
+### Books
+POST http://localhost:4001/api/create-books
+Content-Type: application/json
+
+{
+  "book_title": "Community Health Nursing",
+  "book_type": "NP2"
+}
+
+###
+GET http://localhost:4001/api/books

@@ -4,15 +4,13 @@ import { createDbClient } from "../db/create-db-client"; // your drizzle instanc
 import { openAPI, username } from "better-auth/plugins";
 import { envConfig } from "../env";
 
-
-
 export const auth = betterAuth({
 	database: drizzleAdapter(createDbClient(), {
 		provider: "pg", // or "mysql", "sqlite"
 	}),
 	emailAndPassword: { enabled: true },
 	plugins: [openAPI(), username()],
-	trustedOrigins: ["http://localhost:3000"],
+	trustedOrigins: ["http://localhost:3000", envConfig.FRONTEND_URL],
 	socialProviders: {
 		google: {
 			clientId: envConfig.GOOGLE_CLIENT_ID,

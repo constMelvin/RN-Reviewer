@@ -13,6 +13,7 @@ import userRoutes from "./controllers/users/user.route";
 import { cors } from "hono/cors";
 import { rootRoutes } from "./controllers/routes";
 import path from "path";
+import { envConfig } from "./env";
 
 const app = new Hono<HonoEnv>()
 
@@ -22,7 +23,11 @@ const app = new Hono<HonoEnv>()
 	.use(
 		"*",
 		cors({
-			origin: ["http://localhost:3000", "http://192.168.2.4:3000"],
+			origin: [
+				"http://localhost:3000",
+				"http://192.168.2.4:3000",
+				envConfig.FRONTEND_URL,
+			],
 			credentials: true,
 		})
 	)

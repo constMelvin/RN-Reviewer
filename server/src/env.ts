@@ -11,6 +11,7 @@ const envSchema = z.object({
 	BETTER_AUTH_URL: z.string(),
 	GOOGLE_CLIENT_ID: z.string(),
 	GOOGLE_CLIENT_SECRET: z.string(),
+	FRONTEND_URL: z.string(),
 });
 
 export const envConfig = envSchema.parse({
@@ -20,6 +21,7 @@ export const envConfig = envSchema.parse({
 	BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
 	GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
 	GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+	FRONTEND_URL: process.env.FRONTEND_URL,
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

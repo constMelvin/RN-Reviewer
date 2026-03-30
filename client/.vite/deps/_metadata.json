@@ -1,0 +1,79 @@
+{
+  "hash": "c19f5521",
+  "configHash": "5d3589f5",
+  "lockfileHash": "09871a16",
+  "browserHash": "bc67a0f3",
+  "optimized": {
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "d6cab01a",
+      "needsInterop": true
+    },
+    "@base-ui/react/alert-dialog": {
+      "src": "../../node_modules/@base-ui/react/esm/alert-dialog/index.js",
+      "file": "@base-ui_react_alert-dialog.js",
+      "fileHash": "6eca72be",
+      "needsInterop": false
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "80b2c6a0",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "a8bca994",
+      "needsInterop": true
+    },
+    "@tanstack/react-router": {
+      "src": "../../node_modules/@tanstack/react-router/dist/esm/index.js",
+      "file": "@tanstack_react-router.js",
+      "fileHash": "0447981a",
+      "needsInterop": false
+    },
+    "@tanstack/react-query": {
+      "src": "../../node_modules/@tanstack/react-query/build/modern/index.js",
+      "file": "@tanstack_react-query.js",
+      "fileHash": "b9873265",
+      "needsInterop": false
+    },
+    "sileo": {
+      "src": "../../node_modules/sileo/dist/index.mjs",
+      "file": "sileo.js",
+      "fileHash": "301c78df",
+      "needsInterop": false
+    },
+    "zustand": {
+      "src": "../../node_modules/zustand/esm/index.mjs",
+      "file": "zustand.js",
+      "fileHash": "3a6d0c06",
+      "needsInterop": false
+    },
+    "web-vitals": {
+      "src": "../../node_modules/web-vitals/dist/web-vitals.js",
+      "file": "web-vitals.js",
+      "fileHash": "c0726f01",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-TQRAVTWD": {
+      "file": "chunk-TQRAVTWD.js"
+    },
+    "chunk-SBGGKNCO": {
+      "file": "chunk-SBGGKNCO.js"
+    },
+    "chunk-Q3WKDQIH": {
+      "file": "chunk-Q3WKDQIH.js"
+    },
+    "chunk-VPEBV5N7": {
+      "file": "chunk-VPEBV5N7.js"
+    },
+    "chunk-SNAQBZPT": {
+      "file": "chunk-SNAQBZPT.js"
+    }
+  }
+}

@@ -11,6 +11,19 @@ export const auth = betterAuth({
 	emailAndPassword: { enabled: true },
 	plugins: [openAPI(), username()],
 	trustedOrigins: ["http://localhost:3000", envConfig.FRONTEND_URL],
+	baseURL: envConfig.BETTER_AUTH_URL,
+	advanced: {
+		useSecureCookies: true,
+		crossSubDomainCookies: {
+			enabled: false,
+		},
+		defaultCookieAttributes: {
+			secure: true,
+			sameSite: "none",
+			httpOnly: true,
+			path: "/",
+		},
+	},
 	socialProviders: {
 		google: {
 			clientId: envConfig.GOOGLE_CLIENT_ID,

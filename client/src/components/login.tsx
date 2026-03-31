@@ -57,11 +57,13 @@ const Login = () => {
           throw new Error(json?.message || 'Login failed')
         }
 
-        const updatedFetch = await refetch()
+        await refetch()
 
-        router.update({
-          context: { session: updatedFetch },
-        })
+        // router.update({
+        //   context: { session: updatedFetch.data },
+        // })
+
+        await router.invalidate()
 
         setTimeout(() => {}, 1000)
 

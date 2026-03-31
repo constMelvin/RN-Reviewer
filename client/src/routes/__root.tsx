@@ -19,7 +19,6 @@ import { router } from '@/main'
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: () => {
     const location = useLocation()
-    const navigate = useNavigate()
     const { data: session, isPending } = useSession()
     const hideSidebar = ['/login', '/sign-up'].some((path) =>
       location.pathname.startsWith(path),
@@ -31,13 +30,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       })
     }, [session])
 
-    useEffect(() => {
-      if (isPending) return
-
-      if (session === null && location.pathname !== '/sign-up') {
-        navigate({ to: '/login', replace: true })
-      }
-    }, [session, isPending, location.pathname])
 
     if (isPending)
       return (
@@ -103,17 +95,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
                 {!hideSidebar && <Header />}
                 <Outlet />
               </main>
-              {/* <TanstackDevtools
-              config={{
-                position: 'bottom-left',
-              }}
-              plugins={[
-                {
-                  name: 'Tanstack Router',
-                  render: <TanStackRouterDevtoolsPanel />,
-                },
-              ]}
-            /> */}
             </div>
           </SidebarInset>
         </SidebarProvider>

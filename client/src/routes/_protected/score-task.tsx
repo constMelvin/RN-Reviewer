@@ -1,7 +1,14 @@
 import ScoreTask from '@/components/score-task'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_protected/score-task')({
+  beforeLoad: ({ context }) => {
+    if (!context.session) {
+      throw redirect({
+        to: '/login',
+      })
+    }
+  },
   component: RouteComponent,
 })
 

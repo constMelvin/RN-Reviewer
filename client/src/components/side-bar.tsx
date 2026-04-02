@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/sidebar'
 import { Card } from './ui/card'
 import { SlidingNumber } from '@/components/ui/slider-number'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { format } from 'date-fns'
 import { Separator } from './ui/separator'
 import { Button } from './ui/button'
@@ -34,14 +34,57 @@ const SideBar = () => {
   const [hours, setHours] = useState(new Date().getHours())
   const [minutes, setMinutes] = useState(new Date().getMinutes())
   const [seconds, setSeconds] = useState(new Date().getSeconds())
-  // const [now, setNow] = useState(new Date())
-  const [checked, setChecked] = useState(false)
+  const [checkedTasks, setCheckedTasks] = useState<Set<number>>(new Set())
   const [daysLeft, setDaysLeft] = useState(0)
+  const getToday = () => new Date().toISOString().split('T')[0]
+  const isFirstRender = useRef(true)
+
+  const [tasks, setTasks] = useState<string[]>([])
+  const [input, setInput] = useState('')
 
   const handleLogout = async () => {
     await signOut()
     router.navigate({ to: '/login' })
   }
+  const toggleTask = (index: number) => {
+    setCheckedTasks((prev) => {
+      const next = new Set(prev)
+      next.add(index) // no toggle, since you disable after checking
+      return next
+    })
+  }
+
+  useEffect(() => {
+    const data = JSON.parse(localStorage.getItem('tasks') || 'null')
+
+    if (!data || data.date !== getToday()) {
+      localStorage.setItem(
+        'tasks',
+        JSON.stringify({ date: getToday(), tasks: [], checked: [] }),
+      )
+      setTasks([])
+      setCheckedTasks(new Set())
+    } else {
+      setTasks(data.tasks)
+      setCheckedTasks(new Set(data.checked ?? []))
+    }
+  }, [])
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+
+    localStorage.setItem(
+      'tasks',
+      JSON.stringify({
+        date: getToday(),
+        tasks,
+        checked: [...checkedTasks]
+      }),
+    )
+  }, [tasks, checkedTasks])
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -64,7 +107,12 @@ const SideBar = () => {
     return () => clearInterval(interval)
   }, [])
 
-  // return <div>{daysLeft} days left</div>
+  const onClickTask = () => {
+    if (!input.trim()) return
+
+    setTasks((prev) => [...prev, input])
+    setInput('')
+  }
 
   return (
     <Sidebar collapsible="icon" variant="inset">
@@ -117,32 +165,48 @@ const SideBar = () => {
               Today task | {format(new Date(), 'EEEE')}
             </span>
           </div>
-          <div className="flex flex-row items-center justify-start my-2 gap-2 font-mono text-sm overflow-hidden w-full">
-            <Checkbox
-              checked={checked}
-              disabled={checked}
-              onCheckedChange={(c) => setChecked(!!c)}
-            />
-            <span
-              className={`truncate whitespace-nowrap font-mono ${
-                checked
-                  ? 'line-through cursor-not-allowed text-gray-400'
-                  : 'text-yellow-800'
-              }`}
-            >
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum, at
-              culpa!
-            </span>
+          <div className="flex flex-col my-2 gap-2 font-mono text-sm w-full">
+            {tasks.length === 0 ? (
+              <div className="flex items-center justify-center text-gray-400 italic">
+                No task
+              </div>
+            ) : (
+              tasks.map((task, i) => {
+                const isChecked = checkedTasks.has(i)
+                return (
+                  <div key={i} className="flex flex-row items-center gap-2">
+                    <Checkbox
+                      checked={isChecked}
+                      disabled={isChecked}
+                      onCheckedChange={() => toggleTask(i)}
+                    />
+
+                    <span
+                      className={`truncate ${
+                        isChecked
+                          ? 'line-through cursor-not-allowed text-gray-400'
+                          : 'text-yellow-800'
+                      }`}
+                    >
+                      {task}
+                    </span>
+                  </div>
+                )
+              })
+            )}
           </div>
 
           <div className="flex flex-row items-center gap-1">
             <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
               placeholder="New Task..."
               className="border-yellow-300 placeholder:text-gray-400 focus-visible:ring-0 focus-visible:border-yellow-400 h-7"
             />
             <Button
               variant={'outline'}
               className="cursor-pointer h-7 border-yellow-400 text-yellow-600 hover:bg-yellow-100"
+              onClick={onClickTask}
             >
               <FaArrowUpFromBracket />
             </Button>

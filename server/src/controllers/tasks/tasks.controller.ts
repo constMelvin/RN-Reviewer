@@ -81,7 +81,5 @@ export const updateTaskController = async (
 		values,
 	});
 
-	console.log(updatedData);
-
 	return c.json(updatedData[0], 200);
 };

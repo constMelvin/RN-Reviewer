@@ -70,6 +70,7 @@ import { TextLoop } from './ui/text-loop'
 import { SlidingNumber } from './ui/slider-number'
 import { useCreateTasks, useTasks, useUpdateTasks } from '@/hooks/use-task'
 import type { Task } from '@/@types/task'
+import { useAuthStore } from '@/store/authStore'
 
 const typeOptions = [
   {
@@ -124,7 +125,8 @@ export const columns: ColumnDef<Task>[] = [
       return (
         <div className="flex items-center">
           <Checkbox
-            className="cursor-pointer"
+            className="cursor-pointer data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+            checked={row.original.task_isComplete}
             onCheckedChange={(value) => {
               updateTask.mutate({
                 task_id: row.original.task_id,
@@ -257,7 +259,9 @@ const Quotes = [
 const TaskTracker = () => {
   const queryTask = useTasks()
   const createTask = useCreateTasks()
+  const { user } = useAuthStore()
 
+  console.log(user)
   const rows = useMemo<Task[]>(() => {
     return (
       queryTask.data?.map((task) => ({
@@ -273,7 +277,6 @@ const TaskTracker = () => {
       })) ?? []
     )
   }, [queryTask.data])
-  console.log(rows)
 
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -310,9 +313,6 @@ const TaskTracker = () => {
       rowSelection,
     },
   })
-  // useEffect(() => {
-  //   document.title = `PNLE | ${date?.getFullYear()}`
-  // }, [])
 
   const handleStartTimer = () => {
     if (intervalRef.current) clearInterval(intervalRef.current)
@@ -432,6 +432,11 @@ const TaskTracker = () => {
                       <TableRow
                         key={row.id}
                         data-state={row.getIsSelected() && 'selected'}
+                        className={`transition-all duration-500 ${
+                          row.original.task_isComplete
+                            ? 'bg-emerald-300 opacity-50 hover:bg-emerald-300'
+                            : ''
+                        }`}
                       >
                         {row.getVisibleCells().map((cell) => (
                           <TableCell key={cell.id}>

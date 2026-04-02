@@ -3,6 +3,7 @@ import { client } from '@/lib/client'
 import type { CreateTaskInput, Task, UpdateTask } from '@/@types/task'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
+import { sileo } from 'sileo'
 
 export type TResponse = Task
 
@@ -76,10 +77,6 @@ export function useUpdateTasks() {
   return useMutation<TResponse, Error, UpdateTask, TContext>({
     mutationFn: async (updatedTask: UpdateTask) => {
       try {
-        // const { data } = await api.put(
-        //   `/v1/tasks/update-task/${updatedTask.task_id}`,
-        //   updatedTask,
-        // )
         const res = await client.api.v1.tasks['update-task'][':id'].$put({
           json: { task_isComplete: updatedTask.task_isComplete },
           param: { id: updatedTask.task_id },
@@ -108,7 +105,18 @@ export function useUpdateTasks() {
       queryClient.setQueryData(TASKS_KEY, context?.previousTasks)
     },
     onSuccess(data) {
-      alert(`${data.task_name} Mark as Done!`)
+      const text = data.task_isComplete
+        ? `${data.task_name} Mark as Done!`
+        : `${data.task_name} Mark as Undone!`
+      sileo.success({
+        fill: 'white',
+        position: 'top-center',
+        description: text,
+        duration: 2000,
+        styles: {
+          description: 'text-black!',
+        },
+      })
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: TASKS_KEY })

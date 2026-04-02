@@ -19,8 +19,7 @@ export const TaskData = {
 		const tasks = await dbClient
 			.select()
 			.from(task)
-			.where(and(eq(task.user_id, userId), ne(task.task_isComplete, true)));
-		// const tasks = await dbClient.select().from(task);
+			.where(and(eq(task.user_id, userId)));
 
 		return tasks;
 	},

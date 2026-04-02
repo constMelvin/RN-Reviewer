@@ -19,6 +19,7 @@ const Register = () => {
     username: '',
   })
   const [firstName, setFirstName] = useState('')
+  const [mName, setMName] = useState('')
   const [lastName, setLastName] = useState('')
   const [isVisible, setIsVisible] = useState<boolean>(false)
   const [isUsernameValid, setIsUsernameValid] = useState<boolean | null>(null)
@@ -90,13 +91,14 @@ const Register = () => {
     }
     const updatedData = {
       ...data,
-      name: `${firstName} ${lastName}`,
+      name: `${firstName} ${mName} ${lastName}`,
     }
     try {
       setIsLoading(true)
       const res = await client.api.user.register.$post({ json: updatedData })
       setFirstName('')
       setLastName('')
+      setMName('')
       SetData({
         name: '',
         email: '',
@@ -143,6 +145,20 @@ const Register = () => {
                     required
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="lastname" className="block text-sm">
+                    M/I
+                  </Label>
+                  <Input
+                    className="max-w-xs focus-visible:border-yellow-500 focus-visible:ring-[3px] focus-visible:ring-yellow-500/20 border-yellow-400"
+                    placeholder="Enter M/I"
+                    type="text"
+                    required
+                    value={mName}
+                    onChange={(e) => setMName(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">

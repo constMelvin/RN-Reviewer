@@ -362,8 +362,8 @@ const TaskTracker = () => {
 
   return (
     <>
-      <div className="flex flex-col lg:flex-row m-3 gap-5 overflow-hidden">
-        <div className="flex flex-col gap-5 w-auto">
+      <div className="flex flex-col lg:flex-row m-3 gap-5 max-w-full overflow-x-hidden">
+        <div className="flex flex-col gap-5 w-full min-w-0">
           <div className="w-full h-fit p-5 bg-white rounded-lg shadow-lg border border-yellow-200">
             <div className="font-bold text-xl text-gray-900">Task Tracker</div>
             <div className="flex items-center gap-2 py-4">
@@ -407,7 +407,7 @@ const TaskTracker = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <div className="rounded-md border [&>*]:max-h-[275px] overflow-y-auto relative">
+            <div className="rounded-md border relative overflow-auto max-w-full">
               <Table>
                 <TableHeader className="[&>*]:whitespace-nowrap sticky top-0 z-90 bg-white shadow-sm">
                   {table.getHeaderGroups().map((headerGroup) => (
@@ -657,7 +657,7 @@ const TaskTracker = () => {
         </div>
 
         <div className="relative justify-center mx-auto flex-col gap-10 max-w-[600px] overflow-hidden">
-          <Card className="h-32 w-full flex items-center justify-center overflow-hidden bg-white border-l-7 mb-5 border-yellow-400 shadow-sm rounded-md">
+          <Card className="h-32 w-full flex items-center justify-center overflow-hidden bg-white border-l-7 mb-7 border-yellow-400 shadow-sm rounded-md">
             <TextLoop
               className="font-serif text-sm md:text-base px-6 text-center leading-relaxed text-gray-800"
               interval={60}
@@ -670,7 +670,7 @@ const TaskTracker = () => {
             </TextLoop>
           </Card>
 
-          <Card className="relative h-96 rounded-xl shadow-lg overflow-hidden border-yellow-400">
+          <Card className="relative h-[480px] rounded-xl shadow-lg overflow-hidden border-yellow-400">
             <img
               src="https://imgs.search.brave.com/EDC_TCNLdqZ56Nvw7XVuBhmTS0REwppCr9bHWTvqtDQ/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/dmVjdG9yc3RvY2su/Y29tL2kvcHJldmll/dy0xeC83NS85NS9k/ZWZhdWx0LXBsYWNl/aG9sZGVyLWJ1c2lu/ZXNzd29tYW4taGFs/Zi1sZW5ndGgtcG9y/LXZlY3Rvci0yMDg0/NzU5NS5qcGc"
               alt="profile"

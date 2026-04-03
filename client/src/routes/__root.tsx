@@ -88,10 +88,10 @@ export const Route = createRootRouteWithContext<RouterContext>()({
           {!hideSidebar && <SideBarUi />}
 
           <SidebarInset>
-            <div className="min-h-screen w-full bg-[#f8fafc] relative">
+            <div className="min-h-screen bg-[#f8fafc] relative overflow-hidden">
               <CircuitBoardBackground />
 
-              <main className="relative z-20" role="main">
+              <main className="relative z-10" role="main">
                 {!hideSidebar && <Header />}
                 <Outlet />
               </main>

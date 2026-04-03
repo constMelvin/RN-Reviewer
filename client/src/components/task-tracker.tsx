@@ -362,7 +362,7 @@ const TaskTracker = () => {
 
   return (
     <>
-      <div className="flex flex-col lg:flex-row m-3 gap-5 max-w-full overflow-x-hidden">
+      <div className="flex flex-col lg:flex-row gap-5 p-4 md:p-6 max-w-full overflow-x-hidden">
         <div className="flex flex-col gap-5 w-full min-w-0">
           <div className="w-full h-fit p-5 bg-white rounded-lg shadow-lg border border-yellow-200">
             <div className="font-bold text-xl text-gray-900">Task Tracker</div>

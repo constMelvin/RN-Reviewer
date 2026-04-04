@@ -472,9 +472,9 @@ const TaskTracker = () => {
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                      <DialogTitle>Edit profile</DialogTitle>
+                      <DialogTitle>Create Task</DialogTitle>
                       <DialogDescription>
-                        Make changes to your profile here. Click save when
+                        Create your task here. Click save when
                         you&apos;re done.
                       </DialogDescription>
                     </DialogHeader>
@@ -657,7 +657,7 @@ const TaskTracker = () => {
         </div>
 
         <div className="relative justify-center mx-auto flex-col gap-10 max-w-[600px] overflow-hidden">
-          <Card className="h-32 w-full flex items-center justify-center overflow-hidden bg-white border-l-7 mb-7 border-yellow-400 shadow-sm rounded-md">
+          <Card className="h-32 w-full flex items-center justify-center overflow-hidden bg-white border-l-7 mb-2 border-yellow-400 shadow-sm rounded-md">
             <TextLoop
               className="font-serif text-sm md:text-base px-6 text-center leading-relaxed text-gray-800"
               interval={60}

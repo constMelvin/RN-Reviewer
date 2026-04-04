@@ -5,8 +5,6 @@ import { Navigate } from "react-router-dom";
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
 	const { data: session, isPending, error } = useSession();
 
-	console.log("🔍 Session state:", { session, isPending, error });
-
 	if (isPending) {
 		return (
 			<div className="flex justify-center items-center h-screen">
@@ -16,7 +14,6 @@ const ProtectedRoute = ({ children }: { children: ReactNode }) => {
 	}
 
 	if (!session) {
-		console.log("❌ No session found, redirecting...");
 		return <Navigate to="/sign-in" replace />;
 	}
 

@@ -99,9 +99,18 @@ const Login = () => {
           <Button
             className="mt-8 w-full gap-3 bg-yellow-300 hover:bg-yellow-300/80 cursor-pointer"
             onClick={async () => {
-              const res = await signIn.social({ provider: 'google' })
+              const res = await signIn.social({
+                provider: 'google',
+                callbackURL: window.location.origin,
+                errorCallbackURL: window.location.origin + '/login',
+              })
 
-              console.log(res)
+              if (res?.data) {
+                sileo.success({
+                  title: 'Login successful',
+                  duration: 1000,
+                })
+              }
             }}
           >
             <GoogleLogo />

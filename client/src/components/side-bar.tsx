@@ -15,7 +15,7 @@ import { useEffect, useRef, useState } from 'react'
 import { format } from 'date-fns'
 import { Separator } from './ui/separator'
 import { Button } from './ui/button'
-import { LogOutIcon, Stethoscope } from 'lucide-react'
+import { LogOutIcon, Settings, Stethoscope } from 'lucide-react'
 import {
   FcAlarmClock,
   FcBullish,
@@ -26,7 +26,7 @@ import { FaArrowUpFromBracket } from 'react-icons/fa6'
 import { BsFillClipboardDataFill } from 'react-icons/bs'
 import { Checkbox } from './ui/checkbox'
 import { Input } from './ui/input'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { signOut } from '@/lib/auth-client'
 import { router } from '@/main'
 
@@ -38,9 +38,9 @@ const SideBar = () => {
   const [daysLeft, setDaysLeft] = useState(0)
   const getToday = () => new Date().toISOString().split('T')[0]
   const isFirstRender = useRef(true)
-
   const [tasks, setTasks] = useState<string[]>([])
   const [input, setInput] = useState('')
+  const navigate = useNavigate()
 
   const handleLogout = async () => {
     await signOut()
@@ -81,7 +81,7 @@ const SideBar = () => {
       JSON.stringify({
         date: getToday(),
         tasks,
-        checked: [...checkedTasks]
+        checked: [...checkedTasks],
       }),
     )
   }, [tasks, checkedTasks])
@@ -249,14 +249,27 @@ const SideBar = () => {
 
       {/* Footer */}
       <SidebarFooter>
-        <Button
-          variant={'outline'}
-          className="items-center justify-center cursor-pointer border-yellow-400 text-yellow-600 hover:bg-yellow-100"
-          onClick={handleLogout}
-        >
-          <LogOutIcon className="mr-1" />
-          <span>Logout</span>
-        </Button>
+        <div className="flex gap-2 w-full">
+          <Button
+            variant={'outline'}
+            className="flex-1 items-center justify-center cursor-pointer border-yellow-400 text-yellow-600 hover:bg-yellow-100"
+            onClick={handleLogout}
+          >
+            <LogOutIcon className="mr-1" />
+            <span>Logout</span>
+          </Button>
+          <Button
+            variant={'outline'}
+            className="items-center justify-center cursor-pointer border-yellow-400 text-yellow-600 hover:bg-yellow-100"
+            onClick={() =>
+              navigate({
+                to: '/profile',
+              })
+            }
+          >
+            <Settings />
+          </Button>
+        </div>
       </SidebarFooter>
     </Sidebar>
   )

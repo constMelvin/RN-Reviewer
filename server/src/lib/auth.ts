@@ -26,8 +26,10 @@ export const auth = betterAuth({
 	},
 	socialProviders: {
 		google: {
+			prompt: "select_account",
 			clientId: envConfig.GOOGLE_CLIENT_ID,
 			clientSecret: envConfig.GOOGLE_CLIENT_SECRET,
+			redirectURI: `${envConfig.FRONTEND_URL}/api/auth/callback/google`,
 		},
 	},
 });

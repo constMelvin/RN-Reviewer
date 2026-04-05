@@ -3,10 +3,6 @@
     {
       "source": "/api/:path*",
       "destination": "https://rn-reviewer-api.onrender.com/api/:path*"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
     }
   ]
 }

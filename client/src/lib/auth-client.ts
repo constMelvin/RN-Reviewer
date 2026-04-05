@@ -3,8 +3,7 @@ import { usernameClient } from 'better-auth/client/plugins'
 
 export const authClient = createAuthClient({
   plugins: [usernameClient()],
-  // baseURL: window.location.origin,
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: window.location.origin,
   fetchOptions: {
     credentials: 'include',
   },

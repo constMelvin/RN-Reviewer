@@ -11,14 +11,15 @@ import {
 } from '@/components/ui/sidebar'
 import { Card } from './ui/card'
 import { SlidingNumber } from '@/components/ui/slider-number'
-import { useEffect, useRef, useState } from 'react'
-import { format } from 'date-fns'
+import { useEffect, useState, useMemo } from 'react'
+import { format, differenceInDays } from 'date-fns'
 import { Separator } from './ui/separator'
 import { Button } from './ui/button'
 import { LogOutIcon, Settings, Stethoscope } from 'lucide-react'
 import {
   FcAlarmClock,
   FcBullish,
+  FcHome,
   FcReadingEbook,
   FcSupport,
 } from 'react-icons/fc'
@@ -26,66 +27,103 @@ import { FaArrowUpFromBracket } from 'react-icons/fa6'
 import { BsFillClipboardDataFill } from 'react-icons/bs'
 import { Checkbox } from './ui/checkbox'
 import { Input } from './ui/input'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import { signOut } from '@/lib/auth-client'
 import { router } from '@/main'
+import { Progress } from './ui/progress'
+import { useTasks } from '@/hooks/use-task'
+import { useBooks } from '@/hooks/use-book'
+import { useAuthStore } from '@/store/authStore'
+import {
+  useAgenda,
+  useAddAgenda,
+  useMarkAgendaDone,
+  useMissedYesterday,
+} from '@/hooks/use-agenda'
+
+// ─── helpers ──────────────────────────────────────────────────────────────────
+
+function isOverdueTask(dateStr: string | null, isDone: boolean): boolean {
+  if (isDone || !dateStr) return false
+  try {
+    return differenceInDays(new Date(dateStr), new Date()) < 0
+  } catch {
+    return false
+  }
+}
+
+// ─── component ────────────────────────────────────────────────────────────────
 
 const SideBar = () => {
+  // ── clock ─────────────────────────────────────────────────────────────────
   const [hours, setHours] = useState(new Date().getHours())
   const [minutes, setMinutes] = useState(new Date().getMinutes())
   const [seconds, setSeconds] = useState(new Date().getSeconds())
-  const [checkedTasks, setCheckedTasks] = useState<Set<number>>(new Set())
-  const [daysLeft, setDaysLeft] = useState(0)
-  const getToday = () => new Date().toISOString().split('T')[0]
-  const isFirstRender = useRef(true)
-  const [tasks, setTasks] = useState<string[]>([])
+
+  // ── agenda input ──────────────────────────────────────────────────────────
   const [input, setInput] = useState('')
+
+  // ── NLE countdown ─────────────────────────────────────────────────────────
+  const [daysLeft, setDaysLeft] = useState(0)
+  const NLE_DATE = new Date('2026-08-29')
+  const TOTAL_REVIEW_DAYS = 365
+  const reviewPct = Math.min(
+    100,
+    Math.round(((TOTAL_REVIEW_DAYS - daysLeft) / TOTAL_REVIEW_DAYS) * 100),
+  )
+
+  // ── auth & navigation ─────────────────────────────────────────────────────
   const navigate = useNavigate()
+  const { user } = useAuthStore()
+  const routerState = useRouterState()
+  const currentPath = routerState.location.pathname
 
-  const handleLogout = async () => {
-    await signOut()
-    router.navigate({ to: '/login' })
-  }
-  const toggleTask = (index: number) => {
-    setCheckedTasks((prev) => {
-      const next = new Set(prev)
-      next.add(index) // no toggle, since you disable after checking
-      return next
-    })
-  }
+  // ── remote data ───────────────────────────────────────────────────────────
+  const { data: remoteTasks = [] } = useTasks()
+  const { data: books = [] } = useBooks()
+  const { data: agenda = [], isLoading: agendaLoading } = useAgenda()
+  const { data: missed = [] } = useMissedYesterday()
+  const addAgenda = useAddAgenda()
+  const markDone = useMarkAgendaDone()
 
-  useEffect(() => {
-    const data = JSON.parse(localStorage.getItem('tasks') || 'null')
+  // ── computed ──────────────────────────────────────────────────────────────
+  const overdueCount = useMemo(
+    () =>
+      remoteTasks.filter((t) => isOverdueTask(t.task_date, t.task_isComplete))
+        .length,
+    [remoteTasks],
+  )
 
-    if (!data || data.date !== getToday()) {
-      localStorage.setItem(
-        'tasks',
-        JSON.stringify({ date: getToday(), tasks: [], checked: [] }),
-      )
-      setTasks([])
-      setCheckedTasks(new Set())
-    } else {
-      setTasks(data.tasks)
-      setCheckedTasks(new Set(data.checked ?? []))
+  const activeNP = useMemo(() => {
+    const nps = ['NP1', 'NP2', 'NP3', 'NP4', 'NP5']
+    for (const np of nps) {
+      const book = books.find((b) => b.book_type === np)
+      if (!book) return np
+      const subs = (book.topics ?? []).flatMap((t) => t.subtopics ?? [])
+      const allDone =
+        subs.length > 0 && subs.every((s) => s.status === 'Mastered')
+      if (!allDone) return np
     }
-  }, [])
+    return null
+  }, [books])
 
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false
-      return
-    }
+  const userInitials = useMemo(() => {
+    if (!user?.name) return 'RN'
+    return user.name
+      .split(' ')
+      .map((n: string) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }, [user])
 
-    localStorage.setItem(
-      'tasks',
-      JSON.stringify({
-        date: getToday(),
-        tasks,
-        checked: [...checkedTasks],
-      }),
-    )
-  }, [tasks, checkedTasks])
+  const taskStats = useMemo(() => {
+    const total = agenda.length
+    const done = agenda.filter((a) => a.is_done).length
+    return { total, done, remaining: total - done }
+  }, [agenda])
 
+  // ── effects ───────────────────────────────────────────────────────────────
   useEffect(() => {
     const interval = setInterval(() => {
       setHours(new Date().getHours())
@@ -96,178 +134,301 @@ const SideBar = () => {
   }, [])
 
   useEffect(() => {
-    const targetDate = new Date('2026-08-29')
-
-    const interval = setInterval(() => {
-      const now = new Date()
-      const diff = targetDate.getTime() - now.getTime()
-      setDaysLeft(Math.ceil(diff / (1000 * 60 * 60 * 24)))
-    }, 1000) // update every second
-
+    const updateDays = () => setDaysLeft(differenceInDays(NLE_DATE, new Date()))
+    updateDays()
+    const interval = setInterval(updateDays, 60000)
     return () => clearInterval(interval)
   }, [])
 
+  // ── handlers ──────────────────────────────────────────────────────────────
+  const handleLogout = async () => {
+    await signOut()
+    router.navigate({ to: '/login' })
+  }
+
   const onClickTask = () => {
     if (!input.trim()) return
-
-    setTasks((prev) => [...prev, input])
+    addAgenda.mutate(input.trim())
     setInput('')
   }
 
+  const toggleTask = (id: string) => markDone.mutate(id)
+
+  // ── nav config ────────────────────────────────────────────────────────────
+  const navItems = [
+    {
+      label: 'Home Page',
+      to: '/',
+      icon: <FcHome size={20} />,
+      badge: null,
+    },
+    {
+      label: 'Reviewer Books',
+      to: '/reviewer',
+      icon: <FcReadingEbook size={20} />,
+      badge: activeNP ? (
+        <span className="ml-auto text-[9px] font-bold bg-yellow-400 text-white rounded-full px-1.5 py-0.5">
+          {activeNP}
+        </span>
+      ) : null,
+    },
+    {
+      label: 'Task Tracker',
+      to: '/task-tracker',
+      icon: <BsFillClipboardDataFill size={18} color="#ca8a04" />,
+      badge:
+        overdueCount > 0 ? (
+          <span className="ml-auto text-[9px] font-bold bg-red-500 text-white rounded-full px-1.5 py-0.5">
+            {overdueCount}
+          </span>
+        ) : null,
+    },
+    {
+      label: 'Score Tracker',
+      to: '/score-task',
+      icon: <FcBullish size={20} />,
+      badge: null,
+    },
+  ]
+
+  // ── render ────────────────────────────────────────────────────────────────
   return (
     <Sidebar collapsible="icon" variant="inset">
-      {/* Header */}
+      {/* ── Header ── */}
       <SidebarHeader className="bg-yellow-100">
         <div className="flex flex-row gap-2 items-center justify-center">
-          <Stethoscope size={30} className="text-yellow-600" />
-          <span className="flex flex-row font-story text-[28px] font-bold items-center justify-center text-yellow-700">
+          <Stethoscope size={28} className="text-yellow-600" />
+          <span className="font-story text-[26px] font-bold text-yellow-700">
             PNLE {new Date().getFullYear()}
           </span>
         </div>
-        <div className="flex justify-center gap-2 font-mono">
-          <div className="flex flex-col items-center">
-            <div className="flex items-center justify-center h-15 w-25 rounded-md bg-yellow-300 text-5xl text-white">
+
+        {/* Countdown + review progress bar */}
+        <div className="flex gap-3 items-center">
+          <div className="flex flex-col items-center flex-shrink-0">
+            <div className="flex items-center justify-center h-14 w-16 rounded-xl bg-yellow-400 text-4xl font-bold text-white font-mono">
               {daysLeft}
             </div>
-            <span className="font-bold">{daysLeft <= 1 ? 'Day' : 'Days'}</span>
-          </div>
-          <div className="flex items-center justify-center mt-5 h-10 w-25 rounded-md bg-yellow-300 text-lg font-bold text-white">
-            to go
-          </div>
-        </div>
-        <Separator className="my-1 bg-yellow-300" />
-        <div className="flex flex-col w-full text-lg font-bold text-gray-700">
-          <Card className="items-center w-full mb-2 bg-transparent border-none shadow-none p-1 text-yellow-600">
-            {format(new Date(), 'EEEE, MM-dd-yyyy')}
-          </Card>
-          <div className="flex flex-row w-full font-mono">
-            <Card className="flex-row w-full justify-center items-center py-4 px-2 bg-yellow-50 border border-yellow-200 shadow-sm gap-3">
-              <SlidingNumber value={hours % 12 || 12} padStart={true} />
-              <span className="text-yellow-600 mb-1">:</span>
-              <SlidingNumber value={minutes} padStart={true} />
-              <span className="text-yellow-600 mb-1">:</span>
-              <SlidingNumber value={seconds} padStart={true} />
-              <span className="flex text-yellow-700">
-                {hours >= 12 ? 'PM' : 'AM'}
-              </span>
-            </Card>
-          </div>
-        </div>
-      </SidebarHeader>
-
-      {/* Content */}
-      <SidebarContent className="!bg-white">
-        {/* Today Task */}
-        <SidebarGroup className="flex flex-col">
-          <div className="flex flex-row items-center justify-start gap-2 text-yellow-600">
-            <FcAlarmClock size={25} />
-            <span className="text-[13px] font-mono">
-              Today task | {format(new Date(), 'EEEE')}
+            <span className="text-[10px] font-bold text-yellow-700 mt-0.5">
+              {daysLeft <= 1 ? 'Day' : 'Days'} left
             </span>
           </div>
-          <div className="flex flex-col my-2 gap-2 font-mono text-sm w-full">
-            {tasks.length === 0 ? (
-              <div className="flex items-center justify-center text-gray-400 italic">
-                No task
+          <div className="flex-1">
+            <div className="flex justify-between text-[10px] text-yellow-700 mb-1">
+              <span>Review progress</span>
+              <span className="font-medium">{reviewPct}%</span>
+            </div>
+            <Progress
+              value={reviewPct}
+              className="h-1.5 [&>div]:bg-yellow-400"
+            />
+            <div className="text-[9px] text-yellow-600 mt-1">
+              Target: {format(NLE_DATE, 'MMM d, yyyy')}
+            </div>
+          </div>
+        </div>
+
+        <Separator className="my-1 bg-yellow-300" />
+
+        {/* Date */}
+        <p className="text-[11px] text-yellow-600 text-center font-medium">
+          {format(new Date(), 'EEEE, MMMM d, yyyy')}
+        </p>
+
+        {/* Clock */}
+        <Card className="flex-row w-full justify-center items-center py-3 px-2 bg-yellow-50 border border-yellow-200 shadow-none gap-2 font-mono">
+          <SlidingNumber value={hours % 12 || 12} padStart={true} />
+          <span className="text-yellow-600">:</span>
+          <SlidingNumber value={minutes} padStart={true} />
+          <span className="text-yellow-600">:</span>
+          <SlidingNumber value={seconds} padStart={true} />
+          <span className="text-yellow-700 text-sm">
+            {hours >= 12 ? 'PM' : 'AM'}
+          </span>
+        </Card>
+      </SidebarHeader>
+
+      {/* ── Content ── */}
+      <SidebarContent className="!bg-white">
+        {/* User row */}
+        <div className="flex items-center gap-2.5 px-3 py-2.5 border-b border-yellow-100">
+          <div className="w-9 h-9 rounded-full bg-yellow-400 flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
+            {userInitials}
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-yellow-800 truncate">
+              {user?.name ?? 'Student Nurse'}
+            </p>
+            <p className="text-[10px] text-yellow-600 truncate">
+              PNLE Candidate {new Date().getFullYear()}
+            </p>
+          </div>
+        </div>
+
+        {/* ── Missed Yesterday Warning ── */}
+        {missed.length > 0 && (
+          <div className="mx-3 mt-2 mb-1 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2">
+            <p className="text-[10px] font-bold text-amber-700 mb-1">
+              ⚠️ {missed.length} unfinished from yesterday
+            </p>
+            <ul className="flex flex-col gap-0.5">
+              {missed.map((m) => (
+                <li key={m.id} className="text-[10px] text-amber-600 truncate">
+                  • {m.title}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* ── Today Agenda ── */}
+        <SidebarGroup className="flex flex-col">
+          <div className="flex flex-row items-center gap-1.5 text-yellow-600 mb-2">
+            <FcAlarmClock size={18} />
+            <span className="text-[12px] font-mono font-medium">
+              Today · {format(new Date(), 'EEE')}
+            </span>
+          </div>
+
+          {/* Agenda mini stats */}
+          {agenda.length > 0 && (
+            <div className="grid grid-cols-3 gap-1.5 mb-2">
+              {[
+                {
+                  label: 'Total',
+                  value: taskStats.total,
+                  color: 'text-yellow-700',
+                },
+                {
+                  label: 'Done',
+                  value: taskStats.done,
+                  color: 'text-green-600',
+                },
+                {
+                  label: 'Left',
+                  value: taskStats.remaining,
+                  color:
+                    taskStats.remaining > 0
+                      ? 'text-amber-600'
+                      : 'text-green-600',
+                },
+              ].map(({ label, value, color }) => (
+                <div
+                  key={label}
+                  className="bg-yellow-50 border border-yellow-100 rounded-lg p-1.5 text-center"
+                >
+                  <p className={`text-sm font-bold ${color}`}>{value}</p>
+                  <p className="text-[9px] text-yellow-600">{label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Agenda list */}
+          <div className="flex flex-col gap-1.5 font-mono text-sm max-h-40 overflow-y-auto">
+            {agendaLoading ? (
+              <div className="text-xs text-gray-400 italic py-2 text-center">
+                Loading...
+              </div>
+            ) : agenda.length === 0 ? (
+              <div className="flex items-center justify-center text-gray-400 italic text-xs py-2">
+                No agenda today
               </div>
             ) : (
-              tasks.map((task, i) => {
-                const isChecked = checkedTasks.has(i)
-                return (
-                  <div key={i} className="flex flex-row items-center gap-2">
-                    <Checkbox
-                      checked={isChecked}
-                      disabled={isChecked}
-                      onCheckedChange={() => toggleTask(i)}
-                    />
-
-                    <span
-                      className={`truncate ${
-                        isChecked
-                          ? 'line-through cursor-not-allowed text-gray-400'
-                          : 'text-yellow-800'
-                      }`}
-                    >
-                      {task}
-                    </span>
-                  </div>
-                )
-              })
+              agenda.map((item) => (
+                <div
+                  key={item.id}
+                  className={`flex flex-row items-center gap-2 px-1 py-0.5 rounded ${item.is_done ? 'opacity-50' : ''}`}
+                >
+                  <Checkbox
+                    checked={item.is_done}
+                    disabled={item.is_done}
+                    onCheckedChange={() => toggleTask(item.id)}
+                    className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                  />
+                  <span
+                    className={`truncate text-xs ${
+                      item.is_done
+                        ? 'line-through cursor-not-allowed text-gray-400'
+                        : 'text-yellow-800'
+                    }`}
+                  >
+                    {item.title}
+                  </span>
+                </div>
+              ))
             )}
           </div>
 
-          <div className="flex flex-row items-center gap-1">
+          {/* Agenda input */}
+          <div className="flex flex-row items-center gap-1 mt-2">
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="New Task..."
-              className="border-yellow-300 placeholder:text-gray-400 focus-visible:ring-0 focus-visible:border-yellow-400 h-7"
+              onKeyDown={(e) => e.key === 'Enter' && onClickTask()}
+              placeholder="New agenda..."
+              className="border-yellow-300 placeholder:text-gray-400 focus-visible:ring-0 focus-visible:border-yellow-400 h-7 text-xs"
             />
             <Button
-              variant={'outline'}
+              variant="outline"
               className="cursor-pointer h-7 border-yellow-400 text-yellow-600 hover:bg-yellow-100"
               onClick={onClickTask}
+              disabled={addAgenda.isPending}
             >
-              <FaArrowUpFromBracket />
+              <FaArrowUpFromBracket size={12} />
             </Button>
           </div>
         </SidebarGroup>
 
-        {/* Study Directory */}
+        {/* ── Navigation ── */}
         <SidebarGroup className="flex flex-col bg-yellow-50">
           <SidebarGroupLabel className="flex justify-start items-center gap-2 text-yellow-700">
-            <FcSupport /> Study Directory
+            <FcSupport /> Navigation
           </SidebarGroupLabel>
-
-          <SidebarGroupContent className="font-sans font-semibold text-yellow-800">
+          <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem className="flex items-center gap-2">
-                <FcReadingEbook size={20} />
-                <Link to="/reviewer" className="hover:text-yellow-600">
-                  <span className="font-mono text-lg">Reviewer Books</span>
-                </Link>
-              </SidebarMenuItem>
-              <SidebarMenuItem className="flex items-center gap-2">
-                <BsFillClipboardDataFill
-                  size={20}
-                  color="var(--color-yellow-600)"
-                />
-                <Link to="/" className="hover:text-yellow-600">
-                  <span className="font-mono text-lg">Task Tracker</span>
-                </Link>
-              </SidebarMenuItem>
-              <SidebarMenuItem className="flex items-center gap-2">
-                <FcBullish size={20} />
-                <Link to="/score-task" className="hover:text-yellow-600">
-                  <span className="font-mono text-lg">Score Tracker</span>
-                </Link>
-              </SidebarMenuItem>
+              {navItems.map(({ label, to, icon, badge }) => {
+                const isActive = currentPath === to
+                return (
+                  <SidebarMenuItem key={to}>
+                    <Link
+                      to={to}
+                      className={`flex items-center gap-2 w-full px-2 py-1.5 rounded-lg transition-colors font-mono text-sm font-semibold ${
+                        isActive
+                          ? 'bg-yellow-200 text-yellow-800'
+                          : 'text-yellow-800 hover:bg-yellow-100'
+                      }`}
+                    >
+                      {icon}
+                      <span className="truncate">{label}</span>
+                      {badge}
+                    </Link>
+                  </SidebarMenuItem>
+                )
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Footer */}
+      {/* ── Footer ── */}
       <SidebarFooter>
         <div className="flex gap-2 w-full">
           <Button
-            variant={'outline'}
-            className="flex-1 items-center justify-center cursor-pointer border-yellow-400 text-yellow-600 hover:bg-yellow-100"
-            onClick={handleLogout}
+            variant="outline"
+            className="flex-1 items-center justify-center cursor-pointer border-yellow-400 text-yellow-700 hover:bg-yellow-100 bg-yellow-50"
+            onClick={() => navigate({ to: '/profile' })}
           >
-            <LogOutIcon className="mr-1" />
-            <span>Logout</span>
+            <Settings size={15} className="mr-1" />
+            <span>Settings</span>
           </Button>
           <Button
-            variant={'outline'}
-            className="items-center justify-center cursor-pointer border-yellow-400 text-yellow-600 hover:bg-yellow-100"
-            onClick={() =>
-              navigate({
-                to: '/profile',
-              })
-            }
+            variant="outline"
+            className="items-center justify-center cursor-pointer border-red-200 text-red-500 hover:bg-red-50"
+            onClick={handleLogout}
+            title="Logout"
           >
-            <Settings />
+            <LogOutIcon size={15} />
           </Button>
         </div>
       </SidebarFooter>

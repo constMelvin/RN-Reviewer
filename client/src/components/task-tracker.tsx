@@ -23,6 +23,8 @@ import {
   Type,
   TimerReset,
   Check,
+  AlertTriangle,
+  SkipForward,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -57,20 +59,47 @@ import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { FcCalendar } from 'react-icons/fc'
-
 import { Calendar } from '@/components/ui/calendar'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { format } from 'date-fns'
+import { format, differenceInDays } from 'date-fns'
 import { Card, CardContent, CardTitle } from './ui/card'
 import { TextLoop } from './ui/text-loop'
 import { SlidingNumber } from './ui/slider-number'
 import { useCreateTasks, useTasks, useUpdateTasks } from '@/hooks/use-task'
 import type { Task } from '@/@types/task'
 import { useAuthStore } from '@/store/authStore'
+import { Progress } from '@/components/ui/progress'
+
+// ─── helpers ────────────────────────────────────────────────────────────────
+
+function isOverdueTask(task: Task): boolean {
+  if (task.task_isComplete || !task.task_date) return false
+  try {
+    return differenceInDays(new Date(task.task_date), new Date()) < 0
+  } catch {
+    return false
+  }
+}
+
+function dueDateColor(task: Task): string {
+  if (task.task_isComplete) return 'text-muted-foreground line-through'
+  if (!task.task_date) return 'text-muted-foreground'
+  try {
+    const diff = differenceInDays(new Date(task.task_date), new Date())
+    if (diff < 0) return 'text-red-600 font-medium'
+    if (diff <= 3) return 'text-red-500 font-medium'
+    if (diff <= 7) return 'text-amber-500'
+    return ''
+  } catch {
+    return ''
+  }
+}
+
+// ─── constants ───────────────────────────────────────────────────────────────
 
 const typeOptions = [
   {
@@ -111,13 +140,34 @@ const radioOptions = [
   },
 ]
 
+// Pomodoro session types
+const TIMER_SESSIONS = [
+  { label: 'Pomodoro', minutes: 25, short: '25m' },
+  { label: 'Short break', minutes: 5, short: '5m' },
+  { label: 'Long break', minutes: 15, short: '15m' },
+]
+
+const Quotes = [
+  'Believe in yourself and all that you are. Know that there is something inside you greater than any obstacle. – Christian D. Larson',
+  'Success in the PNLE is not about luck, but about preparation, perseverance, and prayer.',
+  'Do not let what you cannot do interfere with what you can do. Focus and conquer the PNLE. – John Wooden',
+  'The future belongs to those who prepare for it today. Review wisely, trust yourself, and claim your RN license. – Malcolm X',
+  'A nurse\'s real exam is not on paper, but in how you touch lives. The PNLE is just the beginning.',
+  'Push yourself, because no one else is going to do it for you. – Unknown',
+  'Don\'t watch the clock; do what it does. Keep going. – Sam Levenson',
+  'The harder you work for something, the greater you\'ll feel when you achieve it.',
+  'Dream big, work hard, stay focused, and surround yourself with good energy. That\'s the PNLE mindset.',
+  'It always seems impossible until it\'s done. – Nelson Mandela',
+]
+
+// ─── columns ─────────────────────────────────────────────────────────────────
+
 export const columns: ColumnDef<Task>[] = [
   {
     id: 'select',
     header: () => (
       <div className="flex gap-1 items-center">
-        <Check size={16} />
-        Done
+        <Check size={16} /> Done
       </div>
     ),
     cell: ({ row }) => {
@@ -142,72 +192,59 @@ export const columns: ColumnDef<Task>[] = [
     enableSorting: false,
     enableHiding: false,
   },
-
   {
     accessorKey: 'task_name',
-    header: ({ column }) => {
-      return (
-        <div className="flex items-center">
-          <div className="flex gap-1 items-center">
-            <ALargeSmall size={16} strokeWidth={'3'} color="grey" /> Name
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                className="flex item-center justify-center"
-                variant="ghost"
-              >
-                <ArrowUpDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem
-                className="flex items-center cursor-pointer"
-                onClick={() => column.toggleSorting(false)}
-              >
-                <ArrowUpDown className="h-4 w-4" />
-                asc
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="flex items-center cursor-pointer" // para align sa cell
-                onClick={() => column.toggleSorting(true)}
-              >
-                <ArrowUpDown className="h-4 w-4" />
-                desc
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          {/* <Button
-              variant="ghost"
-              className="flex items-center cursor-pointer" // para align sa cell
-              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            >
-              <ArrowUpDown className="h-4 w-4" />
-            </Button> */}
+    header: ({ column }) => (
+      <div className="flex items-center">
+        <div className="flex gap-1 items-center">
+          <ALargeSmall size={16} strokeWidth="3" color="grey" /> Name
         </div>
-      )
-    },
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button className="flex item-center justify-center" variant="ghost">
+              <ArrowUpDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem
+              className="flex items-center cursor-pointer"
+              onClick={() => column.toggleSorting(false)}
+            >
+              <ArrowUpDown className="h-4 w-4" /> asc
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="flex items-center cursor-pointer"
+              onClick={() => column.toggleSorting(true)}
+            >
+              <ArrowUpDown className="h-4 w-4" /> desc
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    ),
     cell: ({ row }) => (
-      <div className="flex items-center">{row.getValue('task_name')}</div>
+      <div
+        className={`flex items-center ${
+          row.original.task_isComplete ? 'line-through text-muted-foreground' : ''
+        }`}
+      >
+        {row.getValue('task_name')}
+      </div>
     ),
   },
-
   {
     accessorKey: 'task_type',
     header: () => (
       <div className="flex gap-1 items-center">
-        <Type size={16} />
-        Types
+        <Type size={16} /> Types
       </div>
     ),
     cell: ({ row }) => {
       const type = row.getValue('task_type') as Task['task_type']
-
       const currTypes = typeOptions.find((opt) => opt.value === type)
-
       return (
         <Badge className={`${currTypes?.className} shadow-none rounded-full`}>
-          <div className="h-1.5 w-1.5 rounded-full bg-current mr-2" />{' '}
+          <div className="h-1.5 w-1.5 rounded-full bg-current mr-2" />
           {currTypes?.label}
         </Badge>
       )
@@ -217,18 +254,30 @@ export const columns: ColumnDef<Task>[] = [
     accessorKey: 'task_date',
     header: () => (
       <div className="flex gap-1 items-center">
-        <FcCalendar size={16} />
-        Due Date
+        <FcCalendar size={16} /> Due Date
       </div>
     ),
-    cell: ({ row }) => <div className="">{row.getValue('task_date')}</div>,
+    cell: ({ row }) => {
+      const task = row.original
+      const overdue = isOverdueTask(task)
+      const colorClass = dueDateColor(task)
+      return (
+        <div className={`flex items-center gap-1 text-sm ${colorClass}`}>
+          {overdue && (
+            <AlertTriangle size={12} className="text-red-500 flex-shrink-0" />
+          )}
+          {row.getValue('task_date') || (
+            <span className="text-muted-foreground text-xs italic">No date</span>
+          )}
+        </div>
+      )
+    },
   },
   {
     accessorKey: 'task_link',
     header: () => (
       <div className="flex gap-1 items-center">
-        <Link size={16} />
-        Links
+        <Link size={16} /> Links
       </div>
     ),
     cell: ({ row }) => (
@@ -236,32 +285,21 @@ export const columns: ColumnDef<Task>[] = [
         href={row.getValue('task_link')}
         target="_blank"
         rel="noopener noreferrer"
-        className="hover:underline hover:text-blue-500"
+        className="hover:underline hover:text-blue-500 text-blue-400 text-sm truncate max-w-[160px] block"
       >
         {row.getValue('task_link')}
       </a>
     ),
   },
 ]
-const Quotes = [
-  'Believe in yourself and all that you are. Know that there is something inside you greater than any obstacle. – Christian D. Larson',
-  'Success in the PNLE is not about luck, but about preparation, perseverance, and prayer.',
-  'Do not let what you cannot do interfere with what you can do. Focus and conquer the PNLE. – John Wooden',
-  'The future belongs to those who prepare for it today. Review wisely, trust yourself, and claim your RN license. – Malcolm X',
-  'A nurse’s real exam is not on paper, but in how you touch lives. The PNLE is just the beginning.',
-  'Push yourself, because no one else is going to do it for you. – Unknown',
-  'Don’t watch the clock; do what it does. Keep going. – Sam Levenson',
-  'The harder you work for something, the greater you’ll feel when you achieve it.',
-  'Dream big, work hard, stay focused, and surround yourself with good energy. That’s the PNLE mindset.',
-  'It always seems impossible until it’s done. – Nelson Mandela',
-]
+
+// ─── main component ───────────────────────────────────────────────────────────
 
 const TaskTracker = () => {
   const queryTask = useTasks()
   const createTask = useCreateTasks()
   const { user } = useAuthStore()
 
-  console.log(user)
   const rows = useMemo<Task[]>(() => {
     return (
       queryTask.data?.map((task) => ({
@@ -278,15 +316,45 @@ const TaskTracker = () => {
     )
   }, [queryTask.data])
 
+  // ── task stats (NEW) ──────────────────────────────────────────────────────
+  const taskStats = useMemo(() => {
+    const total = rows.length
+    const completed = rows.filter((t) => t.task_isComplete).length
+    const overdue = rows.filter((t) => isOverdueTask(t)).length
+    const pending = rows.filter((t) => !t.task_isComplete).length
+    const completionPct = total ? Math.round((completed / total) * 100) : 0
+    return { total, completed, overdue, pending, completionPct }
+  }, [rows])
+
+  // ── overdue tasks list (NEW) ──────────────────────────────────────────────
+  const overdueTasks = useMemo(
+    () => rows.filter((t) => isOverdueTask(t)),
+    [rows],
+  )
+
+  // ── filter tab state (NEW) ────────────────────────────────────────────────
+  type FilterTab = 'all' | 'pending' | 'done' | 'overdue'
+  const [activeTab, setActiveTab] = useState<FilterTab>('all')
+
+  const filteredRows = useMemo(() => {
+    switch (activeTab) {
+      case 'pending': return rows.filter((t) => !t.task_isComplete)
+      case 'done':    return rows.filter((t) => t.task_isComplete)
+      case 'overdue': return rows.filter((t) => isOverdueTask(t))
+      default:        return rows
+    }
+  }, [rows, activeTab])
+
+  // ── timer session type (NEW) ──────────────────────────────────────────────
+  const [activeSession, setActiveSession] = useState(0)
+  const [sessionCount, setSessionCount] = useState(1)
+
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
   const [date, setDate] = useState<Date | undefined>(undefined)
-  const [timer, setTimer] = useState({
-    seconds: 0,
-    minutes: 0,
-  })
+  const [timer, setTimer] = useState({ seconds: 0, minutes: 0 })
   const [newTask, setNewTask] = useState({
     task_name: '',
     task_link: '',
@@ -294,8 +362,9 @@ const TaskTracker = () => {
     task_date: '',
   })
   const intervalRef = useRef<number | null>(null)
+
   const table = useReactTable({
-    data: rows,
+    data: filteredRows,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -306,24 +375,17 @@ const TaskTracker = () => {
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     getRowId: (row) => row.task_id,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
+    state: { sorting, columnFilters, columnVisibility, rowSelection },
   })
 
   const handleStartTimer = () => {
     if (intervalRef.current) clearInterval(intervalRef.current)
-
     intervalRef.current = window.setInterval(() => {
       setTimer((prev) => {
         if (prev.seconds === 0) {
           if (prev.minutes === 0) {
             clearInterval(intervalRef.current!)
             intervalRef.current = null
-            console.log('Tapos na pahinga kupal!!!')
             return prev
           }
           return { minutes: prev.minutes - 1, seconds: 59 }
@@ -332,12 +394,27 @@ const TaskTracker = () => {
       })
     }, 1000)
   }
+
   const handleStopTimer = () => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current)
       intervalRef.current = null
-      console.log('Timer stopped!')
     }
+  }
+
+  // Switch session type and reset timer (NEW)
+  const handleSelectSession = (idx: number) => {
+    handleStopTimer()
+    setActiveSession(idx)
+    setTimer({ minutes: TIMER_SESSIONS[idx].minutes, seconds: 0 })
+  }
+
+  // Skip to next session (NEW)
+  const handleSkipSession = () => {
+    handleStopTimer()
+    const next = (activeSession + 1) % TIMER_SESSIONS.length
+    if (next === 0) setSessionCount((c) => c + 1)
+    handleSelectSession(next)
   }
 
   const handleReset = (e: React.MouseEvent<HTMLElement>) => {
@@ -350,33 +427,97 @@ const TaskTracker = () => {
       ...newTask,
       task_date: date ? format(date, 'MMMM d, yyyy') : '',
     })
-    setNewTask({
-      task_name: '',
-      task_link: '',
-      task_type: 'Lecture',
-      task_date: '',
-    })
-
+    setNewTask({ task_name: '', task_link: '', task_type: 'Lecture', task_date: '' })
     setDate(undefined)
   }
+
+  // User initials for avatar (NEW)
+  const userInitials = useMemo(() => {
+    if (!user?.name) return 'RN'
+    return user.name
+      .split(' ')
+      .map((n: string) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }, [user])
 
   return (
     <>
       <div className="flex flex-col lg:flex-row gap-5 p-4 md:p-6 max-w-full overflow-x-hidden">
         <div className="flex flex-col gap-5 w-full min-w-0">
+
+          {/* ── Stats row (NEW) ── */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { label: 'Total tasks',  value: taskStats.total,     color: 'text-yellow-700' },
+              { label: 'Completed',    value: taskStats.completed,  color: 'text-green-600'  },
+              { label: 'Pending',      value: taskStats.pending,    color: 'text-amber-600'  },
+              { label: 'Overdue',      value: taskStats.overdue,    color: taskStats.overdue > 0 ? 'text-red-500' : 'text-muted-foreground' },
+            ].map(({ label, value, color }) => (
+              <div
+                key={label}
+                className="bg-yellow-50 border border-yellow-200 rounded-xl p-3"
+              >
+                <div className="text-xs text-yellow-700 mb-1">{label}</div>
+                <div className={`text-2xl font-semibold ${color}`}>{value}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* ── Overdue warning banner (NEW) ── */}
+          {overdueTasks.length > 0 && (
+            <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+              <AlertTriangle size={15} className="text-red-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-red-700">
+                  {overdueTasks.length} overdue {overdueTasks.length === 1 ? 'task' : 'tasks'}
+                </p>
+                <p className="text-xs text-red-500 mt-0.5">
+                  {overdueTasks.map((t) => t.task_name).join(', ')}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* ── Task table ── */}
           <div className="w-full h-fit p-5 bg-white rounded-lg shadow-lg border border-yellow-200">
-            <div className="font-bold text-xl text-gray-900">Task Tracker</div>
-            <div className="flex items-center gap-2 py-4">
+            <div className="font-bold text-xl text-gray-900 mb-3">Task Tracker</div>
+
+            {/* Filter tabs (NEW) */}
+            <div className="flex gap-2 mb-3 flex-wrap">
+              {(
+                [
+                  { key: 'all',     label: `All (${taskStats.total})`          },
+                  { key: 'pending', label: `Pending (${taskStats.pending})`    },
+                  { key: 'done',    label: `Done (${taskStats.completed})`     },
+                  { key: 'overdue', label: `Overdue (${taskStats.overdue})`, danger: true },
+                ] as { key: FilterTab; label: string; danger?: boolean }[]
+              ).map(({ key, label, danger }) => (
+                <button
+                  key={key}
+                  onClick={() => setActiveTab(key)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
+                    activeTab === key
+                      ? danger
+                        ? 'bg-red-100 text-red-700 border-red-300'
+                        : 'bg-yellow-400 text-white border-yellow-400'
+                      : danger
+                      ? 'text-red-500 border-red-200 hover:bg-red-50'
+                      : 'text-muted-foreground border-muted hover:border-yellow-300 bg-transparent'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2 py-2">
               <Input
                 placeholder="Filter names..."
-                value={
-                  (table.getColumn('task_name')?.getFilterValue() as string) ??
-                  ''
-                }
+                value={(table.getColumn('task_name')?.getFilterValue() as string) ?? ''}
                 onChange={(event) =>
-                  table
-                    .getColumn('task_name')
-                    ?.setFilterValue(event.target.value)
+                  table.getColumn('task_name')?.setFilterValue(event.target.value)
                 }
                 className="max-w-sm"
               />
@@ -390,23 +531,20 @@ const TaskTracker = () => {
                   {table
                     .getAllColumns()
                     .filter((column) => column.getCanHide())
-                    .map((column) => {
-                      return (
-                        <DropdownMenuCheckboxItem
-                          key={column.id}
-                          className="capitalize"
-                          checked={column.getIsVisible()}
-                          onCheckedChange={(value) =>
-                            column.toggleVisibility(!!value)
-                          }
-                        >
-                          {column.id}
-                        </DropdownMenuCheckboxItem>
-                      )
-                    })}
+                    .map((column) => (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                      >
+                        {column.id}
+                      </DropdownMenuCheckboxItem>
+                    ))}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+
             <div className="rounded-md border relative overflow-auto max-w-full">
               <Table>
                 <TableHeader className="[&>*]:whitespace-nowrap sticky top-0 z-90 bg-white shadow-sm">
@@ -416,16 +554,12 @@ const TaskTracker = () => {
                         <TableHead key={header.id} className="bg-white">
                           {header.isPlaceholder
                             ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext(),
-                              )}
+                            : flexRender(header.column.columnDef.header, header.getContext())}
                         </TableHead>
                       ))}
                     </TableRow>
                   ))}
                 </TableHeader>
-
                 <TableBody>
                   {table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row) => (
@@ -435,38 +569,35 @@ const TaskTracker = () => {
                         className={`transition-all duration-500 ${
                           row.original.task_isComplete
                             ? 'bg-emerald-300 opacity-50 hover:bg-emerald-300'
+                            : isOverdueTask(row.original)
+                            ? 'bg-red-50 hover:bg-red-50'
                             : ''
                         }`}
                       >
                         {row.getVisibleCells().map((cell) => (
                           <TableCell key={cell.id}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext(),
-                            )}
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
                           </TableCell>
                         ))}
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className="h-15 text-center"
-                      >
-                        No results.
+                      <TableCell colSpan={columns.length} className="h-15 text-center text-muted-foreground">
+                        No tasks found.
                       </TableCell>
                     </TableRow>
                   )}
                 </TableBody>
               </Table>
             </div>
-            {/* Create new task row */}
+
+            {/* Add new task */}
             <div className="flex items-center justify-end space-x-2 py-4 px-2">
               <div className="flex-1 text-sm text-muted-foreground">
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button variant={'ghost'} className="cursor-pointer">
+                    <Button variant="ghost" className="cursor-pointer">
                       <Plus /> new table row...
                     </Button>
                   </DialogTrigger>
@@ -474,13 +605,12 @@ const TaskTracker = () => {
                     <DialogHeader>
                       <DialogTitle>Create Task</DialogTitle>
                       <DialogDescription>
-                        Create your task here. Click save when
-                        you&apos;re done.
+                        Create your task here. Click save when you&apos;re done.
                       </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4">
                       <div className="grid gap-3">
-                        <Label htmlFor="name-1">Name: </Label>
+                        <Label htmlFor="name-1">Name:</Label>
                         <Input
                           id="name-1"
                           name="name"
@@ -488,16 +618,12 @@ const TaskTracker = () => {
                           placeholder="Enter name"
                           value={newTask.task_name}
                           onChange={(e) =>
-                            setNewTask((prev) => ({
-                              ...prev,
-                              task_name: e.target.value,
-                            }))
+                            setNewTask((prev) => ({ ...prev, task_name: e.target.value }))
                           }
                         />
                       </div>
-
                       <div className="grid gap-3">
-                        <Label htmlFor="name-1">Link:</Label>
+                        <Label htmlFor="link">Link:</Label>
                         <Input
                           id="link"
                           required
@@ -505,21 +631,13 @@ const TaskTracker = () => {
                           placeholder="Input link or copy link here..."
                           value={newTask.task_link}
                           onChange={(e) =>
-                            setNewTask((prev) => ({
-                              ...prev,
-                              task_link: e.target.value,
-                            }))
+                            setNewTask((prev) => ({ ...prev, task_link: e.target.value }))
                           }
                         />
                       </div>
-
                       <div className="flex gap-3">
-                        {/* <Label htmlFor="username-1"></Label> */}
                         <DropdownMenu>
-                          <DropdownMenuTrigger
-                            className="flex justify-start w-fit cursor-pointer"
-                            asChild
-                          >
+                          <DropdownMenuTrigger className="flex justify-start w-fit cursor-pointer" asChild>
                             <Button variant="outline">
                               Selected type: {newTask.task_type}
                             </Button>
@@ -528,23 +646,13 @@ const TaskTracker = () => {
                             <RadioGroup
                               defaultValue={newTask.task_type}
                               onValueChange={(value) =>
-                                setNewTask((prev) => ({
-                                  ...prev,
-                                  task_type: value,
-                                }))
+                                setNewTask((prev) => ({ ...prev, task_type: value }))
                               }
                               className="flex items-center gap-3"
                             >
                               {radioOptions.map((opt) => (
-                                <div
-                                  key={opt.value}
-                                  className="flex items-center space-x-2 cursor-pointer"
-                                >
-                                  <RadioGroupItem
-                                    value={opt.value}
-                                    id={opt.value}
-                                    className={opt.className}
-                                  />
+                                <div key={opt.value} className="flex items-center space-x-2 cursor-pointer">
+                                  <RadioGroupItem value={opt.value} id={opt.value} className={opt.className} />
                                   <Label htmlFor={opt.value}>{opt.label}</Label>
                                 </div>
                               ))}
@@ -553,21 +661,13 @@ const TaskTracker = () => {
                         </DropdownMenu>
                       </div>
                       <div className="flex gap-3">
-                        <Label htmlFor="name-1">Select Date: </Label>
+                        <Label htmlFor="name-1">Select Date:</Label>
                         <Popover>
                           <PopoverTrigger asChild>
                             <div className="relative w-[250px]">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                className="w-full cursor-pointer"
-                              >
+                              <Button type="button" variant="outline" className="w-full cursor-pointer">
                                 <CalendarIcon />
-                                {date ? (
-                                  format(date, 'MMMM dd, yyyy')
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
+                                {date ? format(date, 'MMMM dd, yyyy') : <span>Pick a date</span>}
                               </Button>
                               {date && (
                                 <Button
@@ -583,12 +683,7 @@ const TaskTracker = () => {
                             </div>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={date}
-                              onSelect={setDate}
-                              autoFocus
-                            />
+                            <Calendar mode="single" selected={date} onSelect={setDate} autoFocus />
                           </PopoverContent>
                         </Popover>
                       </div>
@@ -609,54 +704,77 @@ const TaskTracker = () => {
               </div>
             </div>
           </div>
-          {/* Take a break card. */}
-          <Card className="flex h-72 border border-yellow-400">
-            <CardTitle className="text-2xl font-medium text-center">
-              TAKE A BREAK
+
+          {/* ── Improved timer (NEW) ── */}
+          <Card className="flex flex-col border border-yellow-400 p-5 gap-3">
+            <CardTitle className="text-xl font-medium text-center text-yellow-700">
+              Take a Break
             </CardTitle>
-            <CardContent className="space-y-4">
-              <div className="flex flex-row gap-2 items-center justify-center">
-                <Button
-                  className="rounded-full bg-transparent text-black border border-gray-400 hover:bg-gray-400/85"
-                  onClick={() => {
-                    handleStopTimer()
-                    setTimer({ ...timer, minutes: 25, seconds: 0 })
-                  }}
-                >
-                  Short Break
-                </Button>
-                <Button
-                  className="rounded-full bg-transparent text-black border border-gray-400 hover:bg-gray-400/85"
-                  onClick={() => setTimer({ ...timer, minutes: 60 })}
-                >
-                  {' '}
-                  Long Break
-                </Button>
+            <CardContent className="space-y-4 p-0">
+
+              {/* Session type tabs */}
+              <div className="flex gap-2 justify-center flex-wrap">
+                {TIMER_SESSIONS.map((session, idx) => (
+                  <button
+                    key={session.label}
+                    onClick={() => handleSelectSession(idx)}
+                    className={`px-4 py-1.5 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
+                      activeSession === idx
+                        ? 'bg-yellow-400 text-white border-yellow-400'
+                        : 'text-muted-foreground border-muted hover:border-yellow-300 bg-transparent'
+                    }`}
+                  >
+                    {session.label} {session.short}
+                  </button>
+                ))}
               </div>
-              <div className="flex flex-row items-center justify-center font-mono gap-2 text-7xl font-bold">
+
+              {/* Session counter */}
+              <p className="text-center text-xs text-muted-foreground">
+                Session {sessionCount} ·{' '}
+                {activeSession === 0 ? 'Focus time' : TIMER_SESSIONS[activeSession].label}
+              </p>
+
+              {/* Timer display */}
+              <div className="flex flex-row items-center justify-center font-mono gap-2 text-7xl font-bold text-yellow-700">
                 <SlidingNumber value={timer.minutes} padStart />
                 <span>:</span>
                 <SlidingNumber value={timer.seconds} padStart />
               </div>
+
+              {/* Controls */}
               <div className="flex flex-row gap-2 items-center justify-center">
                 <Button
-                  className="rounded-full bg-transparent text-black border border-gray-400 hover:bg-gray-400/85"
+                  className="rounded-full bg-yellow-400 hover:bg-yellow-400/85 text-white border-none cursor-pointer px-6"
                   onClick={handleStartTimer}
                 >
                   Start
                 </Button>
                 <Button
-                  className="rounded-full bg-transparent text-black border border-gray-400 hover:bg-gray-400/85"
-                  onClick={() => setTimer({ ...timer, minutes: 0, seconds: 0 })}
+                  className="rounded-full bg-transparent text-muted-foreground border border-gray-300 hover:bg-gray-100 cursor-pointer"
+                  onClick={handleSkipSession}
+                  title="Skip to next session"
                 >
-                  <TimerReset />
+                  <SkipForward size={16} />
+                </Button>
+                <Button
+                  className="rounded-full bg-transparent text-muted-foreground border border-gray-300 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => {
+                    handleStopTimer()
+                    setTimer({ minutes: TIMER_SESSIONS[activeSession].minutes, seconds: 0 })
+                  }}
+                >
+                  <TimerReset size={16} />
                 </Button>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="relative justify-center mx-auto flex-col gap-10 max-w-[600px] overflow-hidden">
+        {/* ── Right column ── */}
+        <div className="relative justify-center mx-auto flex-col gap-4 max-w-[600px] overflow-hidden flex w-full">
+
+          {/* Quotes */}
           <Card className="h-32 w-full flex items-center justify-center overflow-hidden bg-white border-l-7 mb-2 border-yellow-400 shadow-sm rounded-md">
             <TextLoop
               className="font-serif text-sm md:text-base px-6 text-center leading-relaxed text-gray-800"
@@ -670,11 +788,62 @@ const TaskTracker = () => {
             </TextLoop>
           </Card>
 
-          <Card className="relative h-[480px] rounded-xl shadow-lg overflow-hidden border-yellow-400">
+          {/* ── Profile card — replaced placeholder image (NEW) ── */}
+          <Card className="border border-yellow-400 rounded-xl p-5 flex flex-col gap-4">
+
+            {/* User info */}
+            <div className="flex items-center gap-3">
+              <div className="w-14 h-14 rounded-full bg-yellow-100 border-2 border-yellow-300 flex items-center justify-center text-xl font-semibold text-yellow-700 flex-shrink-0">
+                {userInitials}
+              </div>
+              <div>
+                <p className="text-base font-medium">{user?.name ?? 'Student Nurse'}</p>
+                <p className="text-xs text-muted-foreground">
+                  {user?.email ?? 'BSN Graduate · NLE Candidate 2026'}
+                </p>
+              </div>
+            </div>
+
+            {/* Task completion progress */}
+            <div>
+              <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
+                <span>Overall task completion</span>
+                <span className="text-yellow-700 font-medium">{taskStats.completionPct}%</span>
+              </div>
+              <Progress
+                value={taskStats.completionPct}
+                className="h-2 [&>div]:bg-yellow-400"
+              />
+            </div>
+
+            {/* Mini stats */}
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: 'Tasks done',   value: taskStats.completed, color: 'text-green-600'  },
+                { label: 'Pending',      value: taskStats.pending,   color: 'text-amber-600'  },
+                { label: 'Overdue',      value: taskStats.overdue,   color: taskStats.overdue > 0 ? 'text-red-500' : 'text-muted-foreground' },
+              ].map(({ label, value, color }) => (
+                <div key={label} className="bg-yellow-50 border border-yellow-200 rounded-lg p-2.5 text-center">
+                  <div className="text-[10px] text-yellow-700 mb-0.5">{label}</div>
+                  <div className={`text-lg font-semibold ${color}`}>{value}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Motivational quote at bottom of profile */}
+            <div className="border-t border-yellow-100 pt-3">
+              <p className="text-xs text-muted-foreground italic text-center">
+                "Every task completed is one step closer to your RN license."
+              </p>
+            </div>
+          </Card>
+
+          {/* ── Wallpaper image card ── */}
+          <Card className="relative rounded-xl overflow-hidden border-yellow-400" style={{ height: '410px' }}>
             <img
               src="https://imgs.search.brave.com/EDC_TCNLdqZ56Nvw7XVuBhmTS0REwppCr9bHWTvqtDQ/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/dmVjdG9yc3RvY2su/Y29tL2kvcHJldmll/dy0xeC83NS85NS9k/ZWZhdWx0LXBsYWNl/aG9sZGVyLWJ1c2lu/ZXNzd29tYW4taGFs/Zi1sZW5ndGgtcG9y/LXZlY3Rvci0yMDg0/NzU5NS5qcGc"
               alt="profile"
-              className="absolute inset-0 h-full w-full object-center"
+              className="absolute inset-0 h-full w-full object-fit object-center"
             />
           </Card>
         </div>

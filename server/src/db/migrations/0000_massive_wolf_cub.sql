@@ -18,8 +18,8 @@ CREATE TABLE "book_subtopics" (
 	"subtopic_id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"topic_id" uuid NOT NULL,
 	"topics" text NOT NULL,
-	"deadline" timestamp with time zone,
-	"status" text NOT NULL,
+	"deadline" text NOT NULL,
+	"status" text DEFAULT 'Not Started',
 	"done" boolean DEFAULT false,
 	"links" text
 );
@@ -42,6 +42,15 @@ CREATE TABLE "books" (
 	"user_id" text NOT NULL,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
+CREATE TABLE "daily_agenda" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"user_id" text NOT NULL,
+	"title" text NOT NULL,
+	"date" text NOT NULL,
+	"is_done" boolean DEFAULT false NOT NULL,
+	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE "score" (
@@ -102,8 +111,10 @@ ALTER TABLE "account" ADD CONSTRAINT "account_user_id_user_id_fk" FOREIGN KEY ("
 ALTER TABLE "book_subtopics" ADD CONSTRAINT "book_subtopics_topic_id_book_topics_topic_id_fk" FOREIGN KEY ("topic_id") REFERENCES "public"."book_topics"("topic_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "book_topics" ADD CONSTRAINT "book_topics_book_id_books_book_id_fk" FOREIGN KEY ("book_id") REFERENCES "public"."books"("book_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "books" ADD CONSTRAINT "books_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "daily_agenda" ADD CONSTRAINT "daily_agenda_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "session" ADD CONSTRAINT "session_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "task" ADD CONSTRAINT "task_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "account_userId_idx" ON "account" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX "daily_agenda_user_date_idx" ON "daily_agenda" USING btree ("user_id","date");--> statement-breakpoint
 CREATE INDEX "session_userId_idx" ON "session" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "verification_identifier_idx" ON "verification" USING btree ("identifier");

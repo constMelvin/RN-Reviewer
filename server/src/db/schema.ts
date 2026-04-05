@@ -141,9 +141,34 @@ export const scores = pgTable("score", {
 	score_total: integer("score_total").default(0).notNull(),
 });
 
+export const daily_agenda = pgTable(
+	"daily_agenda",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		user_id: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		title: text("title").notNull(),
+		date: text("date").notNull(), // format: 'yyyy-MM-dd' para consistent sa existing mo (task_date is text din)
+		is_done: boolean("is_done").default(false).notNull(),
+		created_at: timestamp("created_at").defaultNow(),
+	},
+	(table) => [
+		index("daily_agenda_user_date_idx").on(table.user_id, table.date),
+	]
+);
+
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
 	accounts: many(account),
+	dailyAgenda: many(daily_agenda),
+}));
+
+export const dailyAgendaRelations = relations(daily_agenda, ({ one }) => ({
+	user: one(user, {
+		fields: [daily_agenda.user_id],
+		references: [user.id],
+	}),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({

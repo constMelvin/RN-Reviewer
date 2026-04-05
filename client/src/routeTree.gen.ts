@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProtectedIndexRouteImport } from './routes/_protected/index'
 import { Route as PublicSignUpRouteImport } from './routes/_public/sign-up'
 import { Route as PublicLoginRouteImport } from './routes/_public/login'
+import { Route as ProtectedTaskTrackerRouteImport } from './routes/_protected/task-tracker'
 import { Route as ProtectedScoreTaskRouteImport } from './routes/_protected/score-task'
 import { Route as ProtectedReviewerRouteImport } from './routes/_protected/reviewer'
 import { Route as ProtectedHomeRouteImport } from './routes/_protected/home'
@@ -29,6 +30,11 @@ const PublicSignUpRoute = PublicSignUpRouteImport.update({
 const PublicLoginRoute = PublicLoginRouteImport.update({
   id: '/_public/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProtectedTaskTrackerRoute = ProtectedTaskTrackerRouteImport.update({
+  id: '/_protected/task-tracker',
+  path: '/task-tracker',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedScoreTaskRoute = ProtectedScoreTaskRouteImport.update({
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/home': typeof ProtectedHomeRoute
   '/reviewer': typeof ProtectedReviewerRoute
   '/score-task': typeof ProtectedScoreTaskRoute
+  '/task-tracker': typeof ProtectedTaskTrackerRoute
   '/login': typeof PublicLoginRoute
   '/sign-up': typeof PublicSignUpRoute
   '/': typeof ProtectedIndexRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/home': typeof ProtectedHomeRoute
   '/reviewer': typeof ProtectedReviewerRoute
   '/score-task': typeof ProtectedScoreTaskRoute
+  '/task-tracker': typeof ProtectedTaskTrackerRoute
   '/login': typeof PublicLoginRoute
   '/sign-up': typeof PublicSignUpRoute
   '/': typeof ProtectedIndexRoute
@@ -68,20 +76,36 @@ export interface FileRoutesById {
   '/_protected/home': typeof ProtectedHomeRoute
   '/_protected/reviewer': typeof ProtectedReviewerRoute
   '/_protected/score-task': typeof ProtectedScoreTaskRoute
+  '/_protected/task-tracker': typeof ProtectedTaskTrackerRoute
   '/_public/login': typeof PublicLoginRoute
   '/_public/sign-up': typeof PublicSignUpRoute
   '/_protected/': typeof ProtectedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/home' | '/reviewer' | '/score-task' | '/login' | '/sign-up' | '/'
+  fullPaths:
+    | '/home'
+    | '/reviewer'
+    | '/score-task'
+    | '/task-tracker'
+    | '/login'
+    | '/sign-up'
+    | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/home' | '/reviewer' | '/score-task' | '/login' | '/sign-up' | '/'
+  to:
+    | '/home'
+    | '/reviewer'
+    | '/score-task'
+    | '/task-tracker'
+    | '/login'
+    | '/sign-up'
+    | '/'
   id:
     | '__root__'
     | '/_protected/home'
     | '/_protected/reviewer'
     | '/_protected/score-task'
+    | '/_protected/task-tracker'
     | '/_public/login'
     | '/_public/sign-up'
     | '/_protected/'
@@ -91,6 +115,7 @@ export interface RootRouteChildren {
   ProtectedHomeRoute: typeof ProtectedHomeRoute
   ProtectedReviewerRoute: typeof ProtectedReviewerRoute
   ProtectedScoreTaskRoute: typeof ProtectedScoreTaskRoute
+  ProtectedTaskTrackerRoute: typeof ProtectedTaskTrackerRoute
   PublicLoginRoute: typeof PublicLoginRoute
   PublicSignUpRoute: typeof PublicSignUpRoute
   ProtectedIndexRoute: typeof ProtectedIndexRoute
@@ -117,6 +142,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof PublicLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_protected/task-tracker': {
+      id: '/_protected/task-tracker'
+      path: '/task-tracker'
+      fullPath: '/task-tracker'
+      preLoaderRoute: typeof ProtectedTaskTrackerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_protected/score-task': {
@@ -147,6 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProtectedHomeRoute: ProtectedHomeRoute,
   ProtectedReviewerRoute: ProtectedReviewerRoute,
   ProtectedScoreTaskRoute: ProtectedScoreTaskRoute,
+  ProtectedTaskTrackerRoute: ProtectedTaskTrackerRoute,
   PublicLoginRoute: PublicLoginRoute,
   PublicSignUpRoute: PublicSignUpRoute,
   ProtectedIndexRoute: ProtectedIndexRoute,

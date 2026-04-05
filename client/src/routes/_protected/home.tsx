@@ -1,4 +1,4 @@
-import Home from '@/components/home'
+import Home from '@/components/home-page'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_protected/home')({

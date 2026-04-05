@@ -1,4 +1,4 @@
-import TaskTracker from '@/components/task-tracker'
+import Homepage from '@/components/home-page'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_protected/')({
@@ -13,7 +13,7 @@ export const Route = createFileRoute('/_protected/')({
 function App() {
   return (
     <div>
-      <TaskTracker />
+      <Homepage />
     </div>
   )
 }

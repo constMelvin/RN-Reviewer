@@ -1,60 +1,111 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { api } from '@/lib/api'
 import { format } from 'date-fns'
-
-export type AgendaItem = {
-  id: string
-  title: string
-  date: string
-  is_done: boolean
-}
+import { sileo } from 'sileo'
 
 const TODAY = format(new Date(), 'yyyy-MM-dd')
 const YESTERDAY = format(new Date(Date.now() - 86400000), 'yyyy-MM-dd')
 
+export const AGENDA_KEY = ['agenda', TODAY] as const
+export const MISSED_KEY = ['agenda', YESTERDAY, 'missed'] as const
+
+export type AgendaItem = {
+  id: string
+  user_id: string
+  title: string
+  date: string
+  is_done: boolean
+  created_at: string
+}
+
+type TContext = {
+  previousAgenda: AgendaItem[]
+}
+
 export function useAgenda() {
-  return useQuery({
-    queryKey: ['agenda', TODAY],
+  return useQuery<AgendaItem[], Error>({
+    queryKey: AGENDA_KEY,
     queryFn: async () => {
-      const res = await fetch(`/api/agenda?date=${TODAY}`)
-      if (!res.ok) throw new Error('Failed to fetch agenda')
-      return res.json() as Promise<AgendaItem[]>
+      const { data } = await api.get('/v1/agenda')
+      return data
     },
   })
 }
 
 export function useMissedYesterday() {
-  return useQuery({
-    queryKey: ['agenda', YESTERDAY, 'missed'],
+  return useQuery<AgendaItem[], Error>({
+    queryKey: MISSED_KEY,
     queryFn: async () => {
-      const res = await fetch(`/api/agenda/missed`)
-      if (!res.ok) throw new Error('Failed to fetch missed')
-      return res.json() as Promise<AgendaItem[]>
+      const { data } = await api.get('/v1/agenda/missed')
+      return data
     },
   })
 }
 
 export function useAddAgenda() {
-  const qc = useQueryClient()
-  return useMutation({
+  const queryClient = useQueryClient()
+  return useMutation<AgendaItem, Error, string, TContext>({
     mutationFn: async (title: string) => {
-      const res = await fetch('/api/agenda', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, date: TODAY }),
-      })
-      if (!res.ok) throw new Error('Failed to add')
+      const { data } = await api.post('/v1/agenda', { title, date: TODAY })
+      return data
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['agenda', TODAY] }),
+    onMutate: async (title) => {
+      await queryClient.cancelQueries({ queryKey: AGENDA_KEY })
+      const previousAgenda =
+        queryClient.getQueryData<AgendaItem[]>(AGENDA_KEY) || []
+
+      queryClient.setQueryData<AgendaItem[]>(AGENDA_KEY, [
+        ...previousAgenda,
+        {
+          id: Date.now().toString(),
+          user_id: 'temp',
+          title,
+          date: TODAY,
+          is_done: false,
+          created_at: new Date().toISOString(),
+        },
+      ])
+      return { previousAgenda }
+    },
+    onError(_err, _title, context) {
+      queryClient.setQueryData(AGENDA_KEY, context?.previousAgenda)
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: AGENDA_KEY }),
   })
 }
 
 export function useMarkAgendaDone() {
-  const qc = useQueryClient()
-  return useMutation({
+  const queryClient = useQueryClient()
+  return useMutation<AgendaItem, Error, string, TContext>({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/agenda/${id}/done`, { method: 'PATCH' })
-      if (!res.ok) throw new Error('Failed to mark done')
+      const { data } = await api.patch(`/v1/agenda/${id}/done`)
+      return data
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['agenda', TODAY] }),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: AGENDA_KEY })
+      const previousAgenda =
+        queryClient.getQueryData<AgendaItem[]>(AGENDA_KEY) || []
+
+      queryClient.setQueryData<AgendaItem[]>(
+        AGENDA_KEY,
+        previousAgenda.map((item) =>
+          item.id === id ? { ...item, is_done: true } : item,
+        ),
+      )
+      return { previousAgenda }
+    },
+    onError(_err, _id, context) {
+      queryClient.setQueryData(AGENDA_KEY, context?.previousAgenda)
+    },
+    onSuccess() {
+      sileo.success({
+        fill: 'white',
+        position: 'top-center',
+        description: 'Agenda item done! ✅',
+        duration: 2000,
+        styles: { description: 'text-black!' },
+      })
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: AGENDA_KEY }),
   })
 }

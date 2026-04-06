@@ -1,4 +1,4 @@
-import { CreateTopicsArgs, TopicsData } from "@/data/topics/topics.data";
+import { type CreateTopicsArgs, TopicsData } from "@/data/topics/topics.data";
 import { BadRequestError } from "@/utils/errors";
 
 export const TopicsService = {

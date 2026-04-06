@@ -118,8 +118,8 @@ const SideBar = () => {
   }, [user])
 
   const taskStats = useMemo(() => {
-    const total = agenda.length
-    const done = agenda.filter((a) => a.is_done).length
+    const total = agenda.length ?? 0
+    const done = agenda.filter((a) => a.is_done).length ?? 0
     return { total, done, remaining: total - done }
   }, [agenda])
 
@@ -148,6 +148,7 @@ const SideBar = () => {
 
   const onClickTask = () => {
     if (!input.trim()) return
+    console.log(input)
     addAgenda.mutate(input.trim())
     setInput('')
   }

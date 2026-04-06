@@ -1,7 +1,7 @@
-import { CreateBookInput } from "@/controllers/books/dto/book-create.dto";
-import { DbClient } from "@/db/create-db-client";
+import { type CreateBookInput } from "@/controllers/books/dto/book-create.dto";
+import {type DbClient } from "@/db/create-db-client";
 import { books } from "@/db/schema";
-import { eq, InferInsertModel } from "drizzle-orm";
+import { eq, type InferInsertModel } from "drizzle-orm";
 
 export type CreateBookArgs = {
 	dbClient: DbClient;

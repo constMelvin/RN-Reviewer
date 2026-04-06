@@ -1,7 +1,7 @@
 import {
 	BookData,
-	CreateBookArgs,
-	GetAllBooksArgs,
+	type CreateBookArgs,
+	type GetAllBooksArgs,
 } from "@/data/books/books.data";
 
 export const BookService = {

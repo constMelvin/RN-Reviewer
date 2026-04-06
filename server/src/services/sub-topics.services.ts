@@ -1,7 +1,7 @@
 import {
-	CreateSubTopicsArgs,
+	type CreateSubTopicsArgs,
 	SubTopicsData,
-	UpdateSubTopicsArgs,
+	type UpdateSubTopicsArgs,
 } from "@/data/subtopics/sub-topics.data";
 import { BadRequestError } from "@/utils/errors";
 

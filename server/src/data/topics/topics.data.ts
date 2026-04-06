@@ -1,6 +1,6 @@
-import { DbClient } from "@/db/create-db-client";
+import { type DbClient } from "@/db/create-db-client";
 import { book_topics } from "@/db/schema";
-import { eq, InferInsertModel } from "drizzle-orm";
+import { eq, type InferInsertModel } from "drizzle-orm";
 
 export type CreateTopicsArgs = {
 	dbClient: DbClient;

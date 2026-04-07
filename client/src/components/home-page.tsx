@@ -22,6 +22,7 @@ import { useTasks } from '@/hooks/use-task'
 import { useBooks } from '@/hooks/use-book'
 import { useAuthStore } from '@/store/authStore'
 import { NLE_DATE } from '@/constant/date'
+import { useScore } from '@/hooks/use-score'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -56,6 +57,7 @@ const Homepage = () => {
   const { user } = useAuthStore()
   const { data: tasks = [] } = useTasks()
   const { data: books = [] } = useBooks()
+  const { data: score = [] } = useScore()
 
   // ── user initials ─────────────────────────────────────────────────────────
   const userInitials = useMemo(() => {

@@ -7,8 +7,8 @@ import { daily_agenda } from "@/db/schema";
 import { format } from "date-fns";
 import { and, eq } from "drizzle-orm";
 
-const TODAY = format(new Date(), "yyyy-MM-dd");
-const YESTERDAY = format(new Date(Date.now() - 86400000), "yyyy-MM-dd");
+const TODAY = () => format(new Date(), "yyyy-MM-dd");
+const YESTERDAY = () => format(new Date(Date.now() - 86400000), "yyyy-MM-dd");
 
 export const AgendaData = {
 	getToday: async ({ dbClient, userId }: GetTodayArgs) => {
@@ -18,7 +18,7 @@ export const AgendaData = {
 			.where(
 				and(
 					eq(daily_agenda.user_id, userId),
-					eq(daily_agenda.date, TODAY)
+					eq(daily_agenda.date, TODAY())
 				)
 			);
 	},
@@ -29,7 +29,7 @@ export const AgendaData = {
 			.where(
 				and(
 					eq(daily_agenda.user_id, userId),
-					eq(daily_agenda.date, YESTERDAY),
+					eq(daily_agenda.date, YESTERDAY()),
 					eq(daily_agenda.is_done, false)
 				)
 			);
@@ -37,7 +37,7 @@ export const AgendaData = {
 	create: async ({ dbClient, userId, title }: CreateAgendaArgs) => {
 		return dbClient
 			.insert(daily_agenda)
-			.values({ user_id: userId, title, date: TODAY })
+			.values({ user_id: userId, title, date: TODAY() })
 			.returning();
 	},
 	markDone: async ({ dbClient, id, userId }: MarkAgendaArgs) => {

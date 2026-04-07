@@ -136,6 +136,10 @@ export const task = pgTable("task", {
 
 export const scores = pgTable("score", {
 	score_id: uuid("score_id").defaultRandom().primaryKey(),
+	exam_type: text("exam_type").notNull(),
+	user_id: text("user_id")
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
 	subject: text("subject").notNull(),
 	score: integer("score").default(0).notNull(),
 	score_total: integer("score_total").default(0).notNull(),
@@ -162,6 +166,14 @@ export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
 	accounts: many(account),
 	dailyAgenda: many(daily_agenda),
+	scores: many(scores),
+}));
+
+export const scoresRelations = relations(scores, ({ one }) => ({
+	user: one(user, {
+		fields: [scores.user_id],
+		references: [user.id],
+	}),
 }));
 
 export const dailyAgendaRelations = relations(daily_agenda, ({ one }) => ({

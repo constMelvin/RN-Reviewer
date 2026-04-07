@@ -152,12 +152,12 @@ const Quotes = [
   'Success in the PNLE is not about luck, but about preparation, perseverance, and prayer.',
   'Do not let what you cannot do interfere with what you can do. Focus and conquer the PNLE. – John Wooden',
   'The future belongs to those who prepare for it today. Review wisely, trust yourself, and claim your RN license. – Malcolm X',
-  'A nurse\'s real exam is not on paper, but in how you touch lives. The PNLE is just the beginning.',
+  "A nurse's real exam is not on paper, but in how you touch lives. The PNLE is just the beginning.",
   'Push yourself, because no one else is going to do it for you. – Unknown',
-  'Don\'t watch the clock; do what it does. Keep going. – Sam Levenson',
-  'The harder you work for something, the greater you\'ll feel when you achieve it.',
-  'Dream big, work hard, stay focused, and surround yourself with good energy. That\'s the PNLE mindset.',
-  'It always seems impossible until it\'s done. – Nelson Mandela',
+  "Don't watch the clock; do what it does. Keep going. – Sam Levenson",
+  "The harder you work for something, the greater you'll feel when you achieve it.",
+  "Dream big, work hard, stay focused, and surround yourself with good energy. That's the PNLE mindset.",
+  "It always seems impossible until it's done. – Nelson Mandela",
 ]
 
 // ─── columns ─────────────────────────────────────────────────────────────────
@@ -225,7 +225,9 @@ export const columns: ColumnDef<Task>[] = [
     cell: ({ row }) => (
       <div
         className={`flex items-center ${
-          row.original.task_isComplete ? 'line-through text-muted-foreground' : ''
+          row.original.task_isComplete
+            ? 'line-through text-muted-foreground'
+            : ''
         }`}
       >
         {row.getValue('task_name')}
@@ -267,7 +269,9 @@ export const columns: ColumnDef<Task>[] = [
             <AlertTriangle size={12} className="text-red-500 flex-shrink-0" />
           )}
           {row.getValue('task_date') || (
-            <span className="text-muted-foreground text-xs italic">No date</span>
+            <span className="text-muted-foreground text-xs italic">
+              No date
+            </span>
           )}
         </div>
       )
@@ -338,10 +342,14 @@ const TaskTracker = () => {
 
   const filteredRows = useMemo(() => {
     switch (activeTab) {
-      case 'pending': return rows.filter((t) => !t.task_isComplete)
-      case 'done':    return rows.filter((t) => t.task_isComplete)
-      case 'overdue': return rows.filter((t) => isOverdueTask(t))
-      default:        return rows
+      case 'pending':
+        return rows.filter((t) => !t.task_isComplete)
+      case 'done':
+        return rows.filter((t) => t.task_isComplete)
+      case 'overdue':
+        return rows.filter((t) => isOverdueTask(t))
+      default:
+        return rows
     }
   }, [rows, activeTab])
 
@@ -427,7 +435,12 @@ const TaskTracker = () => {
       ...newTask,
       task_date: date ? format(date, 'MMMM d, yyyy') : '',
     })
-    setNewTask({ task_name: '', task_link: '', task_type: 'Lecture', task_date: '' })
+    setNewTask({
+      task_name: '',
+      task_link: '',
+      task_type: 'Lecture',
+      task_date: '',
+    })
     setDate(undefined)
   }
 
@@ -446,14 +459,32 @@ const TaskTracker = () => {
     <>
       <div className="flex flex-col lg:flex-row gap-5 p-4 md:p-6 max-w-full overflow-x-hidden">
         <div className="flex flex-col gap-5 w-full min-w-0">
-
           {/* ── Stats row (NEW) ── */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
-              { label: 'Total tasks',  value: taskStats.total,     color: 'text-yellow-700' },
-              { label: 'Completed',    value: taskStats.completed,  color: 'text-green-600'  },
-              { label: 'Pending',      value: taskStats.pending,    color: 'text-amber-600'  },
-              { label: 'Overdue',      value: taskStats.overdue,    color: taskStats.overdue > 0 ? 'text-red-500' : 'text-muted-foreground' },
+              {
+                label: 'Total tasks',
+                value: taskStats.total,
+                color: 'text-yellow-700',
+              },
+              {
+                label: 'Completed',
+                value: taskStats.completed,
+                color: 'text-green-600',
+              },
+              {
+                label: 'Pending',
+                value: taskStats.pending,
+                color: 'text-amber-600',
+              },
+              {
+                label: 'Overdue',
+                value: taskStats.overdue,
+                color:
+                  taskStats.overdue > 0
+                    ? 'text-red-500'
+                    : 'text-muted-foreground',
+              },
             ].map(({ label, value, color }) => (
               <div
                 key={label}
@@ -468,10 +499,14 @@ const TaskTracker = () => {
           {/* ── Overdue warning banner (NEW) ── */}
           {overdueTasks.length > 0 && (
             <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
-              <AlertTriangle size={15} className="text-red-500 flex-shrink-0 mt-0.5" />
+              <AlertTriangle
+                size={15}
+                className="text-red-500 flex-shrink-0 mt-0.5"
+              />
               <div>
                 <p className="text-sm font-medium text-red-700">
-                  {overdueTasks.length} overdue {overdueTasks.length === 1 ? 'task' : 'tasks'}
+                  {overdueTasks.length} overdue{' '}
+                  {overdueTasks.length === 1 ? 'task' : 'tasks'}
                 </p>
                 <p className="text-xs text-red-500 mt-0.5">
                   {overdueTasks.map((t) => t.task_name).join(', ')}
@@ -482,16 +517,22 @@ const TaskTracker = () => {
 
           {/* ── Task table ── */}
           <div className="w-full h-fit p-5 bg-white rounded-lg shadow-lg border border-yellow-200">
-            <div className="font-bold text-xl text-gray-900 mb-3">Task Tracker</div>
+            <div className="font-bold text-xl text-gray-900 mb-3">
+              Task Tracker
+            </div>
 
             {/* Filter tabs (NEW) */}
             <div className="flex gap-2 mb-3 flex-wrap">
               {(
                 [
-                  { key: 'all',     label: `All (${taskStats.total})`          },
-                  { key: 'pending', label: `Pending (${taskStats.pending})`    },
-                  { key: 'done',    label: `Done (${taskStats.completed})`     },
-                  { key: 'overdue', label: `Overdue (${taskStats.overdue})`, danger: true },
+                  { key: 'all', label: `All (${taskStats.total})` },
+                  { key: 'pending', label: `Pending (${taskStats.pending})` },
+                  { key: 'done', label: `Done (${taskStats.completed})` },
+                  {
+                    key: 'overdue',
+                    label: `Overdue (${taskStats.overdue})`,
+                    danger: true,
+                  },
                 ] as { key: FilterTab; label: string; danger?: boolean }[]
               ).map(({ key, label, danger }) => (
                 <button
@@ -503,8 +544,8 @@ const TaskTracker = () => {
                         ? 'bg-red-100 text-red-700 border-red-300'
                         : 'bg-yellow-400 text-white border-yellow-400'
                       : danger
-                      ? 'text-red-500 border-red-200 hover:bg-red-50'
-                      : 'text-muted-foreground border-muted hover:border-yellow-300 bg-transparent'
+                        ? 'text-red-500 border-red-200 hover:bg-red-50'
+                        : 'text-muted-foreground border-muted hover:border-yellow-300 bg-transparent'
                   }`}
                 >
                   {label}
@@ -515,9 +556,14 @@ const TaskTracker = () => {
             <div className="flex items-center gap-2 py-2">
               <Input
                 placeholder="Filter names..."
-                value={(table.getColumn('task_name')?.getFilterValue() as string) ?? ''}
+                value={
+                  (table.getColumn('task_name')?.getFilterValue() as string) ??
+                  ''
+                }
                 onChange={(event) =>
-                  table.getColumn('task_name')?.setFilterValue(event.target.value)
+                  table
+                    .getColumn('task_name')
+                    ?.setFilterValue(event.target.value)
                 }
                 className="max-w-sm"
               />
@@ -536,7 +582,9 @@ const TaskTracker = () => {
                         key={column.id}
                         className="capitalize"
                         checked={column.getIsVisible()}
-                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
                       >
                         {column.id}
                       </DropdownMenuCheckboxItem>
@@ -554,7 +602,10 @@ const TaskTracker = () => {
                         <TableHead key={header.id} className="bg-white">
                           {header.isPlaceholder
                             ? null
-                            : flexRender(header.column.columnDef.header, header.getContext())}
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
                         </TableHead>
                       ))}
                     </TableRow>
@@ -570,20 +621,26 @@ const TaskTracker = () => {
                           row.original.task_isComplete
                             ? 'bg-emerald-300 opacity-50 hover:bg-emerald-300'
                             : isOverdueTask(row.original)
-                            ? 'bg-red-50 hover:bg-red-50'
-                            : ''
+                              ? 'bg-red-50 hover:bg-red-50'
+                              : ''
                         }`}
                       >
                         {row.getVisibleCells().map((cell) => (
                           <TableCell key={cell.id}>
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
                           </TableCell>
                         ))}
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={columns.length} className="h-15 text-center text-muted-foreground">
+                      <TableCell
+                        colSpan={columns.length}
+                        className="h-15 text-center text-muted-foreground"
+                      >
                         No tasks found.
                       </TableCell>
                     </TableRow>
@@ -618,7 +675,10 @@ const TaskTracker = () => {
                           placeholder="Enter name"
                           value={newTask.task_name}
                           onChange={(e) =>
-                            setNewTask((prev) => ({ ...prev, task_name: e.target.value }))
+                            setNewTask((prev) => ({
+                              ...prev,
+                              task_name: e.target.value,
+                            }))
                           }
                         />
                       </div>
@@ -631,13 +691,19 @@ const TaskTracker = () => {
                           placeholder="Input link or copy link here..."
                           value={newTask.task_link}
                           onChange={(e) =>
-                            setNewTask((prev) => ({ ...prev, task_link: e.target.value }))
+                            setNewTask((prev) => ({
+                              ...prev,
+                              task_link: e.target.value,
+                            }))
                           }
                         />
                       </div>
                       <div className="flex gap-3">
                         <DropdownMenu>
-                          <DropdownMenuTrigger className="flex justify-start w-fit cursor-pointer" asChild>
+                          <DropdownMenuTrigger
+                            className="flex justify-start w-fit cursor-pointer"
+                            asChild
+                          >
                             <Button variant="outline">
                               Selected type: {newTask.task_type}
                             </Button>
@@ -646,13 +712,23 @@ const TaskTracker = () => {
                             <RadioGroup
                               defaultValue={newTask.task_type}
                               onValueChange={(value) =>
-                                setNewTask((prev) => ({ ...prev, task_type: value }))
+                                setNewTask((prev) => ({
+                                  ...prev,
+                                  task_type: value,
+                                }))
                               }
                               className="flex items-center gap-3"
                             >
                               {radioOptions.map((opt) => (
-                                <div key={opt.value} className="flex items-center space-x-2 cursor-pointer">
-                                  <RadioGroupItem value={opt.value} id={opt.value} className={opt.className} />
+                                <div
+                                  key={opt.value}
+                                  className="flex items-center space-x-2 cursor-pointer"
+                                >
+                                  <RadioGroupItem
+                                    value={opt.value}
+                                    id={opt.value}
+                                    className={opt.className}
+                                  />
                                   <Label htmlFor={opt.value}>{opt.label}</Label>
                                 </div>
                               ))}
@@ -665,9 +741,17 @@ const TaskTracker = () => {
                         <Popover>
                           <PopoverTrigger asChild>
                             <div className="relative w-[250px]">
-                              <Button type="button" variant="outline" className="w-full cursor-pointer">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="w-full cursor-pointer"
+                              >
                                 <CalendarIcon />
-                                {date ? format(date, 'MMMM dd, yyyy') : <span>Pick a date</span>}
+                                {date ? (
+                                  format(date, 'MMMM dd, yyyy')
+                                ) : (
+                                  <span>Pick a date</span>
+                                )}
                               </Button>
                               {date && (
                                 <Button
@@ -683,14 +767,24 @@ const TaskTracker = () => {
                             </div>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar mode="single" selected={date} onSelect={setDate} autoFocus />
+                            <Calendar
+                              mode="single"
+                              selected={date}
+                              onSelect={setDate}
+                              autoFocus
+                            />
                           </PopoverContent>
                         </Popover>
                       </div>
                     </div>
                     <DialogFooter>
                       <DialogClose asChild>
-                        <Button variant="outline">Cancel</Button>
+                        <Button
+                          variant="outline"
+                          className="cursor-pointer hover:bg-red-600"
+                        >
+                          Cancel
+                        </Button>
                       </DialogClose>
                       <Button
                         className="bg-yellow-400 hover:bg-yellow-400/90 cursor-pointer"
@@ -711,7 +805,6 @@ const TaskTracker = () => {
               Take a Break
             </CardTitle>
             <CardContent className="space-y-4 p-0">
-
               {/* Session type tabs */}
               <div className="flex gap-2 justify-center flex-wrap">
                 {TIMER_SESSIONS.map((session, idx) => (
@@ -732,7 +825,9 @@ const TaskTracker = () => {
               {/* Session counter */}
               <p className="text-center text-xs text-muted-foreground">
                 Session {sessionCount} ·{' '}
-                {activeSession === 0 ? 'Focus time' : TIMER_SESSIONS[activeSession].label}
+                {activeSession === 0
+                  ? 'Focus time'
+                  : TIMER_SESSIONS[activeSession].label}
               </p>
 
               {/* Timer display */}
@@ -761,7 +856,10 @@ const TaskTracker = () => {
                   className="rounded-full bg-transparent text-muted-foreground border border-gray-300 hover:bg-gray-100 cursor-pointer"
                   onClick={() => {
                     handleStopTimer()
-                    setTimer({ minutes: TIMER_SESSIONS[activeSession].minutes, seconds: 0 })
+                    setTimer({
+                      minutes: TIMER_SESSIONS[activeSession].minutes,
+                      seconds: 0,
+                    })
                   }}
                 >
                   <TimerReset size={16} />
@@ -773,7 +871,6 @@ const TaskTracker = () => {
 
         {/* ── Right column ── */}
         <div className="relative justify-center mx-auto flex-col gap-4 max-w-[600px] overflow-hidden flex w-full">
-
           {/* Quotes */}
           <Card className="h-32 w-full flex items-center justify-center overflow-hidden bg-white border-l-7 mb-2 border-yellow-400 shadow-sm rounded-md">
             <TextLoop
@@ -790,14 +887,15 @@ const TaskTracker = () => {
 
           {/* ── Profile card — replaced placeholder image (NEW) ── */}
           <Card className="border border-yellow-400 rounded-xl p-5 flex flex-col gap-4">
-
             {/* User info */}
             <div className="flex items-center gap-3">
               <div className="w-14 h-14 rounded-full bg-yellow-100 border-2 border-yellow-300 flex items-center justify-center text-xl font-semibold text-yellow-700 flex-shrink-0">
                 {userInitials}
               </div>
               <div>
-                <p className="text-base font-medium">{user?.name ?? 'Student Nurse'}</p>
+                <p className="text-base font-medium">
+                  {user?.name ?? 'Student Nurse'}
+                </p>
                 <p className="text-xs text-muted-foreground">
                   {user?.email ?? 'BSN Graduate · NLE Candidate 2026'}
                 </p>
@@ -808,7 +906,9 @@ const TaskTracker = () => {
             <div>
               <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
                 <span>Overall task completion</span>
-                <span className="text-yellow-700 font-medium">{taskStats.completionPct}%</span>
+                <span className="text-yellow-700 font-medium">
+                  {taskStats.completionPct}%
+                </span>
               </div>
               <Progress
                 value={taskStats.completionPct}
@@ -819,13 +919,35 @@ const TaskTracker = () => {
             {/* Mini stats */}
             <div className="grid grid-cols-3 gap-2">
               {[
-                { label: 'Tasks done',   value: taskStats.completed, color: 'text-green-600'  },
-                { label: 'Pending',      value: taskStats.pending,   color: 'text-amber-600'  },
-                { label: 'Overdue',      value: taskStats.overdue,   color: taskStats.overdue > 0 ? 'text-red-500' : 'text-muted-foreground' },
+                {
+                  label: 'Tasks done',
+                  value: taskStats.completed,
+                  color: 'text-green-600',
+                },
+                {
+                  label: 'Pending',
+                  value: taskStats.pending,
+                  color: 'text-amber-600',
+                },
+                {
+                  label: 'Overdue',
+                  value: taskStats.overdue,
+                  color:
+                    taskStats.overdue > 0
+                      ? 'text-red-500'
+                      : 'text-muted-foreground',
+                },
               ].map(({ label, value, color }) => (
-                <div key={label} className="bg-yellow-50 border border-yellow-200 rounded-lg p-2.5 text-center">
-                  <div className="text-[10px] text-yellow-700 mb-0.5">{label}</div>
-                  <div className={`text-lg font-semibold ${color}`}>{value}</div>
+                <div
+                  key={label}
+                  className="bg-yellow-50 border border-yellow-200 rounded-lg p-2.5 text-center"
+                >
+                  <div className="text-[10px] text-yellow-700 mb-0.5">
+                    {label}
+                  </div>
+                  <div className={`text-lg font-semibold ${color}`}>
+                    {value}
+                  </div>
                 </div>
               ))}
             </div>
@@ -839,7 +961,10 @@ const TaskTracker = () => {
           </Card>
 
           {/* ── Wallpaper image card ── */}
-          <Card className="relative rounded-xl overflow-hidden border-yellow-400" style={{ height: '410px' }}>
+          <Card
+            className="relative rounded-xl overflow-hidden border-yellow-400"
+            style={{ height: '410px' }}
+          >
             <img
               src="https://imgs.search.brave.com/EDC_TCNLdqZ56Nvw7XVuBhmTS0REwppCr9bHWTvqtDQ/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/dmVjdG9yc3RvY2su/Y29tL2kvcHJldmll/dy0xeC83NS85NS9k/ZWZhdWx0LXBsYWNl/aG9sZGVyLWJ1c2lu/ZXNzd29tYW4taGFs/Zi1sZW5ndGgtcG9y/LXZlY3Rvci0yMDg0/NzU5NS5qcGc"
               alt="profile"

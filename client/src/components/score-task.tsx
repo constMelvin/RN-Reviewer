@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   BookOpen,
   BookType,
@@ -11,8 +11,6 @@ import {
   SquarePen,
   Trash2,
   TrendingUp,
-  TrendingDown,
-  Minus,
   BarChart2,
   Award,
   Percent,
@@ -29,6 +27,24 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
+import { useCreateScore, useScore, type ScoreItem } from '@/hooks/use-score'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogTitle,
+  DialogTrigger,
+} from './ui/dialog'
+import { Label } from './ui/label'
+import { Input } from './ui/input'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu'
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -42,11 +58,11 @@ const EXAM_TYPES = [
   'Post-test',
 ]
 
-function computeGrade(score: number, total: number) {
-  return Math.round((score / total) * 100)
+function computeGrade(score: number, score_total: number) {
+  return Math.round((score / score_total) * 100)
 }
 
-function StatusBadge({ grade }) {
+function StatusBadge({ grade }: any) {
   if (grade >= 90)
     return (
       <Badge className="bg-green-600 text-white rounded-full text-xs">
@@ -85,28 +101,75 @@ function GradeBar({ grade }: any) {
 // ─── main component ─────────────────────────────────────────────────────────
 
 const ScoreTask = () => {
+  const { data: score = [] } = useScore()
+  const createScore = useCreateScore()
+
+  console.log(score)
   // Fix: unique IDs, added examType field
-  const [items, setItems] = useState([
-    { id: '1', subject: 'Pharma', examType: 'Pre-test', score: 25, total: 25 },
-    {
-      id: '2',
-      subject: 'Medsurg',
-      examType: 'Unit Exam',
-      score: 21,
-      total: 25,
-    },
-    { id: '3', subject: 'Psych', examType: 'Pre-test', score: 22, total: 25 },
-    { id: '4', subject: 'Rizal', examType: 'Pre-test', score: 23, total: 25 },
-    { id: '5', subject: 'CA', examType: 'Pre-test', score: 23, total: 25 },
-    // Fix: was duplicate id '5' — now '6'
-    {
-      id: '6',
-      subject: 'Fundament',
-      examType: 'Pre-test',
-      score: 19,
-      total: 25,
-    },
-  ])
+  const [newScore, setNewScore] = useState({
+    score: 0,
+    score_total: 0,
+    subject: '',
+    exam_type: '',
+  })
+
+  const items = useMemo<ScoreItem[]>(() => {
+    return (
+      score.map((s) => ({
+        score_id: s.score_id,
+        score: s.score,
+        score_total: s.score_total,
+        user_id: s.user_id,
+        subject: s.subject,
+        exam_type: s.exam_type,
+      })) ?? []
+    )
+  }, [score])
+  // const [items, setItems] = useState([
+  //   {
+  //     score_id: '1',
+  //     subject: 'Pharma',
+  //     examType: 'Pre-test',
+  //     score: 25,
+  //     score_total: 25,
+  //   },
+  //   {
+  //     score_id: '2',
+  //     subject: 'Medsurg',
+  //     examType: 'Unit Exam',
+  //     score: 21,
+  //     score_total: 25,
+  //   },
+  //   {
+  //     score_id: '3',
+  //     subject: 'Psych',
+  //     examType: 'Pre-test',
+  //     score: 22,
+  //     score_total: 25,
+  //   },
+  //   {
+  //     score_id: '4',
+  //     subject: 'Rizal',
+  //     examType: 'Pre-test',
+  //     score: 23,
+  //     score_total: 25,
+  //   },
+  //   {
+  //     score_id: '5',
+  //     subject: 'CA',
+  //     examType: 'Pre-test',
+  //     score: 23,
+  //     score_total: 25,
+  //   },
+  //   // Fix: was duplicate score_id '5' — now '6'
+  //   {
+  //     score_id: '6',
+  //     subject: 'Fundament',
+  //     examType: 'Pre-test',
+  //     score: 19,
+  //     score_total: 25,
+  //   },
+  // ])
 
   const [activeExam, setActiveExam] = useState('Pre-test')
   const [activeSubject, setActiveSubject] = useState('All')
@@ -115,14 +178,14 @@ const ScoreTask = () => {
 
   // Only show tabs for exam types that have at least one entry
   const usedExamTypes = EXAM_TYPES.filter((e) =>
-    items.some((i) => i.examType === e),
+    items.some((i) => i.exam_type === e),
   )
 
   // Subject pills for the active tab
   const subjectPills = [
     'All',
     ...new Set(
-      items.filter((i) => i.examType === activeExam).map((i) => i.subject),
+      items.filter((i) => i.exam_type === activeExam).map((i) => i.subject),
     ),
   ]
 
@@ -130,21 +193,23 @@ const ScoreTask = () => {
   const visibleRows = items
     .filter(
       (i) =>
-        i.examType === activeExam &&
+        i.exam_type === activeExam &&
         (activeSubject === 'All' || i.subject === activeSubject),
     )
     .sort(
-      (a, b) => computeGrade(b.score, b.total) - computeGrade(a.score, a.total),
+      (a, b) =>
+        computeGrade(b.score, b.score_total) -
+        computeGrade(a.score, a.score_total),
     )
 
   // "vs prev exam type" comparison
 
   // ── stats ─────────────────────────────────────────────────────────────────
 
-  const allGrades = items.map((i) => computeGrade(i.score, i.total))
+  const allGrades = items.map((i) => computeGrade(i.score, i.score_total))
   const examGrades = items
-    .filter((i) => i.examType === activeExam)
-    .map((i) => computeGrade(i.score, i.total))
+    .filter((i) => i.exam_type === activeExam)
+    .map((i) => computeGrade(i.score, i.score_total))
 
   const overallAvg = allGrades.length
     ? Math.round(allGrades.reduce((a, b) => a + b, 0) / allGrades.length)
@@ -161,12 +226,16 @@ const ScoreTask = () => {
 
   // ── handlers ──────────────────────────────────────────────────────────────
 
-  const handleDelete = (id: any) =>
-    setItems((prev) => prev.filter((i) => i.id !== id))
+  const handleDelete = (score_id: any) =>
+    // setItems((prev) => prev.filter((i) => i.score_id !== score_id))
+    console.log(score_id)
 
   const handleExamChange = (val: any) => {
     setActiveExam(val)
     setActiveSubject('All')
+  }
+  const handleScoreSubmit = async () => {
+    createScore.mutate(newScore)
   }
 
   // ── render ────────────────────────────────────────────────────────────────
@@ -188,7 +257,6 @@ const ScoreTask = () => {
                 </p>
               </div>
             </div>
-           
           </div>
         </CardTitle>
 
@@ -315,10 +383,16 @@ const ScoreTask = () => {
                       <TableBody>
                         {visibleRows.length > 0 ? (
                           visibleRows.map((item) => {
-                            const grade = computeGrade(item.score, item.total)
+                            const grade = computeGrade(
+                              item.score,
+                              item.score_total,
+                            )
 
                             return (
-                              <TableRow key={item.id} className="font-medium">
+                              <TableRow
+                                key={item.score_id}
+                                className="font-medium"
+                              >
                                 <TableCell className="text-start">
                                   {item.subject}
                                 </TableCell>
@@ -326,7 +400,7 @@ const ScoreTask = () => {
                                   {item.score}
                                 </TableCell>
                                 <TableCell className="text-center">
-                                  {item.total}
+                                  {item.score_total}
                                 </TableCell>
                                 <TableCell className="text-center">
                                   {/* Grade + mini bar (NEW) */}
@@ -343,7 +417,9 @@ const ScoreTask = () => {
                                     </Button>
                                     <Button
                                       className="bg-red-500 hover:bg-red-500/70 cursor-pointer h-7 w-7 p-0"
-                                      onClick={() => handleDelete(item.id)}
+                                      onClick={() =>
+                                        handleDelete(item.score_id)
+                                      }
                                     >
                                       <Trash2 size={13} />
                                     </Button>
@@ -365,13 +441,101 @@ const ScoreTask = () => {
                       </TableBody>
                     </Table>
                   </div>
-                  <Button
-                    className="flex items-center justify-start text-muted-foreground mx-auto mt-2 text-center text-sm font-semibold w-full"
-                    variant="ghost"
-                  >
-                    <Plus className="h-5 w-5" />
-                    Add new scores
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        className="flex items-center justify-start text-muted-foreground mx-auto mt-2 text-center text-sm font-semibold w-full cursor-pointer"
+                        variant="ghost"
+                      >
+                        <Plus className="h-5 w-5" />
+                        Add new scores
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogTitle>Create Score</DialogTitle>
+                      <DialogDescription>
+                        Create your score here. Click save when you&apos;re
+                        done.
+                      </DialogDescription>
+                      <div className="flex flex-col space-y-3">
+                        <Label>Subject</Label>
+                        <Input
+                          placeholder="Input your Subject"
+                          value={newScore.subject}
+                          onChange={(e) =>
+                            setNewScore((prev) => ({
+                              ...prev,
+                              subject: e.target.value,
+                            }))
+                          }
+                        />
+                        <Label>Score</Label>
+                        <Input
+                          placeholder="Input your Scores"
+                          type="number"
+                          value={newScore.score}
+                          onChange={(e) =>
+                            setNewScore((prev) => ({
+                              ...prev,
+                              score: parseInt(e.target.value),
+                            }))
+                          }
+                        />
+                        <Label>Score Total</Label>
+                        <Input
+                          placeholder="Input your Total number of items"
+                          value={newScore.score_total}
+                          type="number"
+                          onChange={(e) =>
+                            setNewScore((prev) => ({
+                              ...prev,
+                              score_total: parseInt(e.target.value),
+                            }))
+                          }
+                        />
+                        <Label>Exam type</Label>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="flex justify-start w-fit cursor-pointer bg-yellow-200 hover:bg-yellow-200/90"
+                            >
+                              Select Exam Type: {newScore.exam_type || 'None'}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            {EXAM_TYPES.map((et) => (
+                              <DropdownMenuItem
+                                key={et}
+                                className="text-yellow-700 bg-yellow-200 mb-1 cursor-pointer"
+                                onSelect={() =>
+                                  setNewScore({ ...newScore, exam_type: et })
+                                }
+                              >
+                                {et}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button
+                            variant="outline"
+                            className="cursor-pointer hover:bg-red-500"
+                          >
+                            Cancel
+                          </Button>
+                        </DialogClose>
+                        <Button
+                          className="bg-yellow-400 hover:bg-yellow-400/90 cursor-pointer"
+                          onClick={handleScoreSubmit}
+                        >
+                          Save changes
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </TabsContent>
               ))}
             </Tabs>

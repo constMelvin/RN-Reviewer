@@ -38,7 +38,6 @@ export function useCreateBook() {
       const previousBooks = queryClient.getQueryData<Books[]>(BOOKS_KEY) || []
 
       const tempId = `temp-${Date.now()}`
-      console.log(previousBooks)
       queryClient.setQueryData<Books[]>(BOOKS_KEY, [
         ...previousBooks,
         {
@@ -51,8 +50,6 @@ export function useCreateBook() {
           updated_at: new Date().toISOString(),
         },
       ])
-      console.log(previousBooks)
-      console.log('onMutate End.')
       return { previousBooks }
     },
     onError(_err, _bookInput, context) {

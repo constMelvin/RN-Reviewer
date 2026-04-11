@@ -57,9 +57,7 @@ export function useCreateBook() {
         queryClient.setQueryData(BOOKS_KEY, context.previousBooks)
       }
     },
-    onSuccess(data) {
-      alert(`${data.book_title} book successfully added.`)
-    },
+
     onSettled: () => queryClient.invalidateQueries({ queryKey: BOOKS_KEY }),
   })
 }

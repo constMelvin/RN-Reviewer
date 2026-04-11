@@ -54,7 +54,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
@@ -143,7 +143,7 @@ const radioOptions = [
 // Pomodoro session types
 const TIMER_SESSIONS = [
   { label: 'Pomodoro', minutes: 25, short: '25m' },
-  { label: 'Short break', minutes: 5, short: '5m' },
+  { label: 'Short break', minutes: 1, short: '5m' },
   { label: 'Long break', minutes: 15, short: '15m' },
 ]
 
@@ -353,6 +353,33 @@ const TaskTracker = () => {
     }
   }, [rows, activeTab])
 
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  useEffect(() => {
+    audioRef.current = new Audio('/sounds/alarm-sound.mp3')
+    audioRef.current.volume = 1.0
+  }, [])
+
+  const playSound = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0
+      audioRef.current.loop = true
+      audioRef.current.play()
+      setTimeout(() => {
+        audioRef.current!.pause()
+        audioRef.current!.currentTime = 0
+        audioRef.current!.loop = false
+      }, 60000) // 1 minute
+    }
+  }
+  const stopSound = () => {
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+      audioRef.current.loop = false
+    }
+  }
+
   // ── timer session type (NEW) ──────────────────────────────────────────────
   const [activeSession, setActiveSession] = useState(0)
   const [sessionCount, setSessionCount] = useState(1)
@@ -392,6 +419,7 @@ const TaskTracker = () => {
       setTimer((prev) => {
         if (prev.seconds === 0) {
           if (prev.minutes === 0) {
+            playSound()
             clearInterval(intervalRef.current!)
             intervalRef.current = null
             return prev
@@ -404,6 +432,7 @@ const TaskTracker = () => {
   }
 
   const handleStopTimer = () => {
+    stopSound()
     if (intervalRef.current) {
       clearInterval(intervalRef.current)
       intervalRef.current = null
@@ -412,6 +441,7 @@ const TaskTracker = () => {
 
   // Switch session type and reset timer (NEW)
   const handleSelectSession = (idx: number) => {
+    stopSound()
     handleStopTimer()
     setActiveSession(idx)
     setTimer({ minutes: TIMER_SESSIONS[idx].minutes, seconds: 0 })
@@ -419,6 +449,7 @@ const TaskTracker = () => {
 
   // Skip to next session (NEW)
   const handleSkipSession = () => {
+    stopSound()
     handleStopTimer()
     const next = (activeSession + 1) % TIMER_SESSIONS.length
     if (next === 0) setSessionCount((c) => c + 1)
@@ -962,8 +993,8 @@ const TaskTracker = () => {
 
           {/* ── Wallpaper image card ── */}
           <Card
-            className="relative rounded-xl overflow-hidden border-yellow-400"
-            style={{ height: '410px' }}
+            className="relative rounded-xl overflow-hidden border-yellow-400 h-[400px] lg:h-full"
+            // style={{ height: '410px' }}
           >
             <img
               src="https://imgs.search.brave.com/EDC_TCNLdqZ56Nvw7XVuBhmTS0REwppCr9bHWTvqtDQ/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/dmVjdG9yc3RvY2su/Y29tL2kvcHJldmll/dy0xeC83NS85NS9k/ZWZhdWx0LXBsYWNl/aG9sZGVyLWJ1c2lu/ZXNzd29tYW4taGFs/Zi1sZW5ndGgtcG9y/LXZlY3Rvci0yMDg0/NzU5NS5qcGc"

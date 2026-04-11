@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef } from 'react'
+import { useMemo, useState, useRef, useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { differenceInDays, format } from 'date-fns'
 import {
@@ -12,6 +12,7 @@ import {
   SkipForward,
   TimerReset,
   Target,
+  BadgeCheck,
 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -22,7 +23,7 @@ import { useTasks } from '@/hooks/use-task'
 import { useBooks } from '@/hooks/use-book'
 import { useAuthStore } from '@/store/authStore'
 import { NLE_DATE } from '@/constant/date'
-import { useScore } from '@/hooks/use-score'
+import { useScore, type ScoreItem } from '@/hooks/use-score'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -59,6 +60,38 @@ const Homepage = () => {
   const { data: books = [] } = useBooks()
   const { data: score = [] } = useScore()
 
+  const scores = useMemo<ScoreItem[]>(() => {
+    return (
+      score.map((s) => ({
+        score_id: s.score_id,
+        score: s.score,
+        score_total: s.score_total,
+        user_id: s.user_id,
+        subject: s.subject,
+        exam_type: s.exam_type,
+      })) ?? []
+    )
+  }, [score])
+
+  // Computing avarage grade
+  function computeGrade(score: number, score_total: number) {
+    return Math.round((score / score_total) * 100)
+  }
+  const allGrades = scores.map((i) => computeGrade(i.score, i.score_total))
+  const failingScores = scores.filter((_, i) => allGrades[i] < 75)
+  const failingGrades = allGrades.filter((g) => g < 75)
+  const highestGrade = Math.max(...allGrades)
+
+  const overallAvg = allGrades.length
+    ? Math.round(allGrades.reduce((a, b) => a + b, 0) / allGrades.length)
+    : 0
+
+  const passRate = allGrades.length
+    ? Math.round(
+        (allGrades.filter((g) => g >= 75).length / allGrades.length) * 100,
+      )
+    : 0
+
   // ── user initials ─────────────────────────────────────────────────────────
   const userInitials = useMemo(() => {
     if (!user?.name) return 'RN'
@@ -85,7 +118,10 @@ const Homepage = () => {
     const pending = total - completed
     const pct = total ? Math.round((completed / total) * 100) : 0
     const recent = [...tasks].filter((t) => !t.task_isComplete).slice(0, 3)
-    return { total, completed, overdue, pending, pct, recent }
+    const overdueItems = tasks.filter((t) =>
+      isOverdue(t.task_date, t.task_isComplete),
+    )
+    return { total, completed, overdue, pending, pct, recent, overdueItems }
   }, [tasks])
 
   // ── reviewer stats ────────────────────────────────────────────────────────
@@ -114,13 +150,11 @@ const Homepage = () => {
   // These would come from useScores() hook once connected
   const scoreStats = useMemo(
     () => ({
-      overallAvg: 86,
-      best: 92,
-      passRate: 100,
-      weakest: 'Pharma',
-      weakestGrade: 74,
+      overallAvg: overallAvg,
+      best: highestGrade,
+      passRate: passRate,
     }),
-    [],
+    [overallAvg, passRate, highestGrade],
   )
 
   // ── timer ─────────────────────────────────────────────────────────────────
@@ -128,6 +162,31 @@ const Homepage = () => {
   const [timer, setTimer] = useState({ minutes: 25, seconds: 0 })
   const [running, setRunning] = useState(false)
   const intervalRef = useRef<number | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  useEffect(() => {
+    audioRef.current = new Audio('/sounds/alarm-sound.mp3')
+    audioRef.current.volume = 1.0
+  }, [])
+  const playSound = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0
+      audioRef.current.loop = true
+      audioRef.current.play()
+      setTimeout(() => {
+        audioRef.current!.pause()
+        audioRef.current!.currentTime = 0
+        audioRef.current!.loop = false
+      }, 60000) // 1 minute
+    }
+  }
+  const stopSound = () => {
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+      audioRef.current.loop = false
+    }
+  }
 
   const startTimer = () => {
     if (intervalRef.current) clearInterval(intervalRef.current)
@@ -138,6 +197,7 @@ const Homepage = () => {
           if (prev.minutes === 0) {
             clearInterval(intervalRef.current!)
             setRunning(false)
+            playSound()
             return prev
           }
           return { minutes: prev.minutes - 1, seconds: 59 }
@@ -161,10 +221,13 @@ const Homepage = () => {
     setTimer({ minutes: TIMER_SESSIONS[idx].minutes, seconds: 0 })
   }
 
-  const skipSession = () =>
+  const skipSession = () => {
     switchSession((activeSession + 1) % TIMER_SESSIONS.length)
+    stopSound()
+  }
 
   const resetTimer = () => {
+    stopSound()
     stopTimer()
     setTimer({ minutes: TIMER_SESSIONS[activeSession].minutes, seconds: 0 })
   }
@@ -180,7 +243,8 @@ const Homepage = () => {
           </div>
           <div>
             <p className="text-sm font-medium leading-none">
-              Welcome back, {user?.name?.split(' ')[0] ?? 'Nurse'}! 👋
+              Welcome back future nurse, {user?.name?.split(' ')[0] ?? 'Nurse'}!
+              👋
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
               {format(new Date(), 'EEEE, MMMM d, yyyy')}
@@ -293,16 +357,40 @@ const Homepage = () => {
               </div>
             ))}
           </div>
-          <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
-            <AlertTriangle size={13} className="text-red-500 flex-shrink-0" />
-            <div>
-              <p className="text-xs font-medium text-red-700">
-                Needs attention
-              </p>
-              <p className="text-[10px] text-red-500">
-                {scoreStats.weakest} — grade {scoreStats.weakestGrade}
-              </p>
-            </div>
+          <div
+            className={`flex flex-col gap-2 ${failingScores.length > 2 ? 'max-h-[120px] overflow-y-auto pr-1' : ''}`}
+          >
+            {failingScores.length === 0 ? (
+              <div className="flex items-center gap-2 bg-green-50 border border-green-100 rounded-lg px-3 py-2">
+                <BadgeCheck
+                  size={13}
+                  className="text-green-500 flex-shrink-0"
+                />
+                <p className="text-xs font-medium text-green-700">
+                  All scores are passing! 🎉
+                </p>
+              </div>
+            ) : (
+              failingScores.map((item, i) => (
+                <div
+                  key={item.score_id}
+                  className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-lg px-3 py-2"
+                >
+                  <AlertTriangle
+                    size={13}
+                    className="text-red-500 flex-shrink-0"
+                  />
+                  <div>
+                    <p className="text-xs font-medium text-red-700">
+                      Needs attention
+                    </p>
+                    <p className="text-[10px] text-red-500">
+                      {item.subject} — grade {failingGrades[i]}%
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
           <Button
             onClick={() => navigate({ to: '/score-task' })}
@@ -369,23 +457,19 @@ const Homepage = () => {
             />
           </div>
           {/* Recent pending tasks */}
-          <div className="flex flex-col gap-1.5">
-            {taskStats.recent.length > 0 ? (
-              taskStats.recent.map((t) => (
+          <div
+            className={`flex flex-col gap-1.5 ${taskStats.overdueItems.length > 2 ? 'max-h-[60px] overflow-y-auto pr-1' : ''}`}
+          >
+            {taskStats.overdueItems.length > 0 ? (
+              taskStats.overdueItems.map((t) => (
                 <div
                   key={t.task_id}
-                  className={`flex items-center gap-2 text-xs px-2 py-1.5 rounded-lg ${
-                    isOverdue(t.task_date, t.task_isComplete)
-                      ? 'bg-red-50 text-red-700'
-                      : 'bg-yellow-50 text-yellow-800'
-                  }`}
+                  className="flex items-center gap-2 text-xs px-2 py-1.5 rounded-lg bg-red-50 text-red-700"
                 >
-                  {isOverdue(t.task_date, t.task_isComplete) && (
-                    <AlertTriangle
-                      size={11}
-                      className="text-red-500 flex-shrink-0"
-                    />
-                  )}
+                  <AlertTriangle
+                    size={11}
+                    className="text-red-500 flex-shrink-0"
+                  />
                   <span className="truncate flex-1">{t.task_name}</span>
                   <span className="text-[10px] opacity-70 flex-shrink-0">
                     {t.task_date}
@@ -393,9 +477,15 @@ const Homepage = () => {
                 </div>
               ))
             ) : (
-              <p className="text-xs text-muted-foreground italic text-center py-1">
-                All tasks done! 🎉
-              </p>
+              <div className="flex items-center gap-2 bg-green-50 border border-green-100 rounded-lg px-3 py-2">
+                <BadgeCheck
+                  size={13}
+                  className="text-green-500 flex-shrink-0"
+                />
+                <p className="text-xs font-medium text-green-700">
+                  No overdue tasks! 🎉
+                </p>
+              </div>
             )}
           </div>
           <Button
@@ -404,6 +494,75 @@ const Homepage = () => {
           >
             Open Task Tracker
           </Button>
+        </Card>
+
+        {/* ══ Break timer ══ */}
+        <Card className="border border-yellow-300 p-5 flex flex-col gap-3">
+          <div className="flex items-center gap-2 text-yellow-700">
+            <Timer size={16} />
+            <span className="text-sm font-medium">Break Timer</span>
+          </div>
+          {/* Session tabs */}
+          <div className="flex gap-1.5">
+            {TIMER_SESSIONS.map((s, idx) => (
+              <button
+                key={s.label}
+                onClick={() => switchSession(idx)}
+                className={`flex-1 py-1.5 rounded-lg text-[10px] font-medium border transition-colors cursor-pointer ${
+                  activeSession === idx
+                    ? 'bg-yellow-400 text-white border-yellow-400'
+                    : 'text-muted-foreground border-muted hover:border-yellow-300 bg-transparent'
+                }`}
+              >
+                {s.label}
+                <span className="block text-[9px] opacity-75">
+                  {s.minutes}m
+                </span>
+              </button>
+            ))}
+          </div>
+          {/* Display */}
+          <div
+            className={`text-center py-3 rounded-xl ${running ? 'bg-yellow-50' : 'bg-transparent'}`}
+          >
+            <div className="flex items-center justify-center font-mono gap-1 text-5xl font-bold text-yellow-700">
+              <SlidingNumber value={timer.minutes} padStart />
+              <span className={running ? 'animate-pulse' : ''}>:</span>
+              <SlidingNumber value={timer.seconds} padStart />
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              {running ? TIMER_SESSIONS[activeSession].label : 'Ready'}
+            </p>
+          </div>
+          {/* Controls */}
+          <div className="flex gap-2">
+            <Button
+              onClick={running ? stopTimer : startTimer}
+              className={`flex-1 h-8 text-xs cursor-pointer ${
+                running
+                  ? 'bg-red-100 hover:bg-red-200 text-red-700 border border-red-200'
+                  : 'bg-yellow-400 hover:bg-yellow-500 text-white'
+              }`}
+            >
+              {running ? 'Pause' : 'Start'}
+            </Button>
+            <Button
+              onClick={skipSession}
+              variant="outline"
+              className="h-8 w-8 p-0 cursor-pointer border-yellow-200 hover:border-yellow-400"
+              title="Skip session"
+            >
+              <SkipForward size={14} />
+            </Button>
+            <Button
+              onClick={resetTimer}
+              variant="outline"
+              className="h-8 w-8 p-0 cursor-pointer border-yellow-200 hover:border-yellow-400"
+              title="Reset"
+            >
+              <TimerReset size={14} />
+            </Button>
+          </div>
         </Card>
 
         {/* ══ Reviewer / PNLE Concept progress ══ */}
@@ -494,75 +653,6 @@ const Homepage = () => {
           >
             Open Reviewer
           </Button>
-        </Card>
-
-        {/* ══ Break timer ══ */}
-        <Card className="border border-yellow-300 p-5 flex flex-col gap-3">
-          <div className="flex items-center gap-2 text-yellow-700">
-            <Timer size={16} />
-            <span className="text-sm font-medium">Break Timer</span>
-          </div>
-          {/* Session tabs */}
-          <div className="flex gap-1.5">
-            {TIMER_SESSIONS.map((s, idx) => (
-              <button
-                key={s.label}
-                onClick={() => switchSession(idx)}
-                className={`flex-1 py-1.5 rounded-lg text-[10px] font-medium border transition-colors cursor-pointer ${
-                  activeSession === idx
-                    ? 'bg-yellow-400 text-white border-yellow-400'
-                    : 'text-muted-foreground border-muted hover:border-yellow-300 bg-transparent'
-                }`}
-              >
-                {s.label}
-                <span className="block text-[9px] opacity-75">
-                  {s.minutes}m
-                </span>
-              </button>
-            ))}
-          </div>
-          {/* Display */}
-          <div
-            className={`text-center py-3 rounded-xl ${running ? 'bg-yellow-50' : 'bg-transparent'}`}
-          >
-            <div className="flex items-center justify-center font-mono gap-1 text-5xl font-bold text-yellow-700">
-              <SlidingNumber value={timer.minutes} padStart />
-              <span className={running ? 'animate-pulse' : ''}>:</span>
-              <SlidingNumber value={timer.seconds} padStart />
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-1">
-              {running ? TIMER_SESSIONS[activeSession].label : 'Ready'}
-            </p>
-          </div>
-          {/* Controls */}
-          <div className="flex gap-2">
-            <Button
-              onClick={running ? stopTimer : startTimer}
-              className={`flex-1 h-8 text-xs cursor-pointer ${
-                running
-                  ? 'bg-red-100 hover:bg-red-200 text-red-700 border border-red-200'
-                  : 'bg-yellow-400 hover:bg-yellow-500 text-white'
-              }`}
-            >
-              {running ? 'Pause' : 'Start'}
-            </Button>
-            <Button
-              onClick={skipSession}
-              variant="outline"
-              className="h-8 w-8 p-0 cursor-pointer border-yellow-200 hover:border-yellow-400"
-              title="Skip session"
-            >
-              <SkipForward size={14} />
-            </Button>
-            <Button
-              onClick={resetTimer}
-              variant="outline"
-              className="h-8 w-8 p-0 cursor-pointer border-yellow-200 hover:border-yellow-400"
-              title="Reset"
-            >
-              <TimerReset size={14} />
-            </Button>
-          </div>
         </Card>
       </div>
 

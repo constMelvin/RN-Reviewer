@@ -125,51 +125,6 @@ const ScoreTask = () => {
       })) ?? []
     )
   }, [score])
-  // const [items, setItems] = useState([
-  //   {
-  //     score_id: '1',
-  //     subject: 'Pharma',
-  //     examType: 'Pre-test',
-  //     score: 25,
-  //     score_total: 25,
-  //   },
-  //   {
-  //     score_id: '2',
-  //     subject: 'Medsurg',
-  //     examType: 'Unit Exam',
-  //     score: 21,
-  //     score_total: 25,
-  //   },
-  //   {
-  //     score_id: '3',
-  //     subject: 'Psych',
-  //     examType: 'Pre-test',
-  //     score: 22,
-  //     score_total: 25,
-  //   },
-  //   {
-  //     score_id: '4',
-  //     subject: 'Rizal',
-  //     examType: 'Pre-test',
-  //     score: 23,
-  //     score_total: 25,
-  //   },
-  //   {
-  //     score_id: '5',
-  //     subject: 'CA',
-  //     examType: 'Pre-test',
-  //     score: 23,
-  //     score_total: 25,
-  //   },
-  //   // Fix: was duplicate score_id '5' — now '6'
-  //   {
-  //     score_id: '6',
-  //     subject: 'Fundament',
-  //     examType: 'Pre-test',
-  //     score: 19,
-  //     score_total: 25,
-  //   },
-  // ])
 
   const [activeExam, setActiveExam] = useState('Pre-test')
   const [activeSubject, setActiveSubject] = useState('All')

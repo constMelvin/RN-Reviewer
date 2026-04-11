@@ -151,7 +151,7 @@ const Homepage = () => {
   const scoreStats = useMemo(
     () => ({
       overallAvg: overallAvg,
-      best: highestGrade,
+      best: highestGrade | 0,
       passRate: passRate,
     }),
     [overallAvg, passRate, highestGrade],

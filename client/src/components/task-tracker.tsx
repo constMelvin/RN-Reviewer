@@ -143,7 +143,7 @@ const radioOptions = [
 // Pomodoro session types
 const TIMER_SESSIONS = [
   { label: 'Pomodoro', minutes: 25, short: '25m' },
-  { label: 'Short break', minutes: 1, short: '5m' },
+  { label: 'Short break', minutes: 5, short: '5m' },
   { label: 'Long break', minutes: 15, short: '15m' },
 ]
 

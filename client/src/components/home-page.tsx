@@ -37,7 +37,7 @@ function isOverdue(dateStr: string | null, isDone: boolean): boolean {
 }
 
 const TIMER_SESSIONS = [
-  { label: 'Focus', minutes: 25 },
+  { label: 'Pomodoro', minutes: 25 },
   { label: 'Short break', minutes: 5 },
   { label: 'Long break', minutes: 15 },
 ]

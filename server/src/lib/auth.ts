@@ -11,6 +11,7 @@ export const auth = betterAuth({
 	emailAndPassword: { enabled: true },
 	plugins: [openAPI(), username()],
 	trustedOrigins: ["http://localhost:3000", envConfig.FRONTEND_URL],
+	trustHost: true,
 	baseURL: envConfig.BETTER_AUTH_URL,
 	advanced: {
 		useSecureCookies: true,

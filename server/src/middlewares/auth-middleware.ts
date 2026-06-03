@@ -15,7 +15,7 @@ export const authMiddleware: MiddlewareHandler = async (
 		throw new UnauthorizedError("Unauthorized");
 	}
 
-	if (!isUserLogin(c, session.user.id))
+	if (!(await isUserLogin(c, session.user.id)))
 		throw new UnauthorizedError("User is not authenticated");
 
 	const dbClient = createDbClient();

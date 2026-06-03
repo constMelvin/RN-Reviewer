@@ -1,6 +1,6 @@
 import type { BookTopics } from '@/@types/books'
 import { BOOKS_KEY } from '@/constant/queryKeys'
-import { client } from '@/lib/client'
+import { api } from '@/utils/api'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 type TResponse = BookTopics[]
@@ -17,11 +17,14 @@ export function useCreateTopics() {
   return useMutation<TResponse, Error, TInput>({
     mutationFn: async (topics: TInput) => {
       try {
-        const res = await client.api.v1.topic['create-topics'].$post({
-          json: topics,
-        })
+        // const res = await client.api.v1.topic['create-topics'].$post({
+        //   json: topics,
+        // })
 
-        return await res.json()
+        // return await res.json()
+
+        const { data } = await api.post("/v1/topic/create-topics", topics);
+        return data;
       } catch (error: any) {
         throw error.response?.data?.message || 'Something went wrong'
       }

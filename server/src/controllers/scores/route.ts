@@ -6,7 +6,7 @@ import { CreateScoreSchema } from "./dto/scores.dto";
 import { BadRequestError } from "@/utils/errors";
 
 export const scoreRoutes = new Hono()
-	.use(authMiddleware)
+	.use("*", authMiddleware)
 	.get("/", getScoreController)
 	.post(
 		"/",

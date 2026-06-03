@@ -1,6 +1,8 @@
 import type { CreateScoreInput } from '@/@types/score'
 import { SCORE_KEY } from '@/constant/queryKeys'
-import { api } from '@/lib/api'
+import { api } from '@/utils/api'
+// import { api } from '@/lib/api'
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { sileo } from 'sileo'
 

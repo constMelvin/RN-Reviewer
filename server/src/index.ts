@@ -43,72 +43,72 @@ const app = new Hono<HonoEnv>()
 
 /* ---------- STATIC ASSETS + SPA FALLBACK ---------- */
 
-if (process.env.NODE_ENV === "production") {
-	console.log("production mode");
+// if (process.env.NODE_ENV === "production") {
+// 	console.log("production mode");
 
-	const distPath = path.resolve(process.cwd(), "client/dist");
+// 	const distPath = path.resolve(process.cwd(), "client/dist");
 
-	console.log("📁 Serving from:", distPath);
+// 	console.log("📁 Serving from:", distPath);
 
-	// Add explicit favicon route
-	app.get("/favicon.ico", async (c) => {
-		const filePath = path.join(distPath, "favicon.ico");
-		if (existsSync(filePath)) {
-			const fileBuffer = readFileSync(filePath);
-			return c.body(fileBuffer, 200, {
-				"Content-Type": "image/x-icon",
-			});
-		}
-		return c.notFound();
-	});
+// 	// Add explicit favicon route
+// 	app.get("/favicon.ico", async (c) => {
+// 		const filePath = path.join(distPath, "favicon.ico");
+// 		if (existsSync(filePath)) {
+// 			const fileBuffer = readFileSync(filePath);
+// 			return c.body(fileBuffer, 200, {
+// 				"Content-Type": "image/x-icon",
+// 			});
+// 		}
+// 		return c.notFound();
+// 	});
 
-	// Serve static files with proper MIME types
-	app.get("*", async (c, next) => {
-		const reqPath = c.req.path;
+// 	// Serve static files with proper MIME types
+// 	app.get("*", async (c, next) => {
+// 		const reqPath = c.req.path;
 
-		// Skip API routes
-		if (reqPath.startsWith("/api")) {
-			return next();
-		}
+// 		// Skip API routes
+// 		if (reqPath.startsWith("/api")) {
+// 			return next();
+// 		}
 
-		// Check for static file extensions
-		const ext = reqPath.split(".").pop()?.toLowerCase();
+// 		// Check for static file extensions
+// 		const ext = reqPath.split(".").pop()?.toLowerCase();
 
-		// Define MIME types
-		const mimeTypes: Record<string, string> = {
-			png: "image/png",
-			jpg: "image/jpeg",
-			jpeg: "image/jpeg",
-			gif: "image/gif",
-			svg: "image/svg+xml",
-			webp: "image/webp",
-			ico: "image/x-icon",
-			css: "text/css",
-			js: "application/javascript",
-			json: "application/json",
-			woff: "font/woff",
-			woff2: "font/woff2",
-		};
+// 		// Define MIME types
+// 		const mimeTypes: Record<string, string> = {
+// 			png: "image/png",
+// 			jpg: "image/jpeg",
+// 			jpeg: "image/jpeg",
+// 			gif: "image/gif",
+// 			svg: "image/svg+xml",
+// 			webp: "image/webp",
+// 			ico: "image/x-icon",
+// 			css: "text/css",
+// 			js: "application/javascript",
+// 			json: "application/json",
+// 			woff: "font/woff",
+// 			woff2: "font/woff2",
+// 		};
 
-		if (ext && mimeTypes[ext]) {
-			const filePath = path.join(distPath, reqPath);
+// 		if (ext && mimeTypes[ext]) {
+// 			const filePath = path.join(distPath, reqPath);
 
-			if (existsSync(filePath)) {
-				const fileBuffer = readFileSync(filePath);
-				return c.body(fileBuffer, 200, {
-					"Content-Type": mimeTypes[ext],
-					"Cache-Control":
-						ext === "html"
-							? "no-cache"
-							: "public, max-age=31536000",
-				});
-			}
-		}
+// 			if (existsSync(filePath)) {
+// 				const fileBuffer = readFileSync(filePath);
+// 				return c.body(fileBuffer, 200, {
+// 					"Content-Type": mimeTypes[ext],
+// 					"Cache-Control":
+// 						ext === "html"
+// 							? "no-cache"
+// 							: "public, max-age=31536000",
+// 				});
+// 			}
+// 		}
 
-		// Fallback to index.html for SPA routes
-		return serveStatic({ root: distPath, path: "index.html" })(c, next);
-	});
-}
+// 		// Fallback to index.html for SPA routes
+// 		return serveStatic({ root: distPath, path: "index.html" })(c, next);
+// 	});
+// }
 
 /* ---------- ERROR HANDLER ---------- */
 app.onError(errorHandlerMiddleware);

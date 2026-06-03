@@ -11,7 +11,7 @@ import { AgendaParamsSchema, CreateAgendaSchema } from "./dto/agenda.dto";
 import { BadRequestError } from "@/utils/errors";
 
 export const agendaRoutes = new Hono()
-	.use(authMiddleware)
+	.use("*", authMiddleware)
 	.get("/", getAgendaController)
 	.get("/missed", getMissedController)
 	.post(

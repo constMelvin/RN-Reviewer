@@ -12,7 +12,7 @@ export const authMiddleware: MiddlewareHandler = async (
 	const session = await auth.api.getSession({ headers: c.req.raw.headers });
 
 	if (!session || !session.user) {
-		throw new UnauthorizedError("Unauthorized");
+		throw new UnauthorizedError("Unauthorized to access this route!");
 	}
 
 	if (!(await isUserLogin(c, session.user.id)))

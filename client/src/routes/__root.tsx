@@ -7,7 +7,7 @@ import {
 // import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 // import { TanstackDevtools } from '@tanstack/react-devtools'
 
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import SideBarUi from '@/components/side-bar'
 import Header from '@/components/header'
 import type { RouterContext } from '@/@types/context'
@@ -89,6 +89,12 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
               <main className="relative z-10" role="main">
                 {!hideSidebar && <Header />}
+                {/* Mobile trigger — only shows when sidebar is hidden on small screens */}
+                {!hideSidebar && (
+                  <div className="md:hidden fixed top-3 left-3 z-50">
+                    <SidebarTrigger />
+                  </div>
+                )}
                 <Outlet />
               </main>
             </div>

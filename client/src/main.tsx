@@ -8,6 +8,8 @@ import reportWebVitals from './reportWebVitals.ts'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useAuthStore } from './store/authStore.ts'
 import { Toaster } from 'sileo'
+import { applyTheme } from '@/lib/themes'
+import type { ThemeName } from '@/lib/themes'
 
 export const router = createRouter({
   routeTree,
@@ -21,11 +23,15 @@ export const router = createRouter({
 function App() {
   const { data: session, isPending, refetch } = useSession()
 
-  const { setUser, clearUser } = useAuthStore()
+  const { setUser, clearUser, getUserProfile, userProfile } = useAuthStore()
 
   useEffect(() => {
     document.title = `PNLE | ${new Date().getFullYear()}`
   }, [])
+
+  useEffect(() => {
+    getUserProfile()
+  }, [session])
 
   useEffect(() => {
     // Refetch session on mount to sync with cookies

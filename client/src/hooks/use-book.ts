@@ -1,6 +1,7 @@
 import type { Books, BooksInput } from '@/@types/books'
 import { BOOKS_KEY } from '@/constant/queryKeys'
-import { client } from '@/lib/client'
+import { api } from '@/utils/api'
+// import { client } from '@/lib/client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 type BResponse = Books
@@ -12,9 +13,9 @@ export function useBooks() {
   return useQuery<Books[], Error>({
     queryKey: BOOKS_KEY,
     queryFn: async () => {
-      const res = await client.api.v1.books.$get()
-      const result = await res.json()
-      return result.books as Books[]
+      // const res = await client.api.v1.books.$get()
+      const { data } = await api.get("/v1/books");
+      return data.books as Books[]
     },
   })
 }
@@ -25,10 +26,12 @@ export function useCreateBook() {
   return useMutation<BResponse, Error, BooksInput, BContext>({
     mutationFn: async (bookInput: BooksInput) => {
       try {
-        const res = await client.api.v1.books['create-books'].$post({
-          json: bookInput,
-        })
-        return await res.json()
+        // const res = await client.api.v1.books['create-books'].$post({
+        //   json: bookInput,
+        // })
+
+        const res = await api.post("/v1/books/create-books", bookInput);
+        return res.data as Books
       } catch (error: any) {
         throw error.response?.data?.message || 'Something went wrong'
       }

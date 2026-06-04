@@ -20,12 +20,12 @@ export const router = createRouter({
 
 function App() {
   const { data: session, isPending, refetch } = useSession()
-  const date = new Date()
+
   const { setUser, clearUser } = useAuthStore()
 
   useEffect(() => {
-    document.title = `PNLE | ${date.getFullYear()}`
-  }, [date])
+    document.title = `PNLE | ${new Date().getFullYear()}`
+  }, [])
 
   useEffect(() => {
     // Refetch session on mount to sync with cookies

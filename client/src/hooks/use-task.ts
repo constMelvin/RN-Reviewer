@@ -4,6 +4,7 @@ import type { CreateTaskInput, Task, UpdateTask } from '@/@types/task'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
 import { sileo } from 'sileo'
+import { api } from '@/utils/api'
 
 export type TResponse = Task
 
@@ -15,9 +16,10 @@ export function useTasks() {
   return useQuery<Task[], Error>({
     queryKey: TASKS_KEY,
     queryFn: async () => {
-      const res = await client.api.v1.tasks.$get()
-      // const res = await api.get('/v1/tasks')
-      return (await res.json()) as Task[]
+      // const res = await client.api.v1.tasks.$get()
+      // return (await res.json()) as Task[]
+      const res = await api.get('/v1/tasks')
+      return res.data
     },
   })
 }
@@ -29,12 +31,13 @@ export function useCreateTasks() {
   return useMutation<TResponse, Error, CreateTaskInput, TContext>({
     mutationFn: async (newTask: CreateTaskInput) => {
       try {
-        // const { data } = await api.post('/v1/tasks/create-task', newTask)
+        const { data } = await api.post('/v1/tasks/create-task', newTask)
+        return data
 
-        const res = await client.api.v1.tasks['create-task'].$post({
-          json: newTask,
-        })
-        return await res.json()
+        // const res = await client.api.v1.tasks['create-task'].$post({
+        //   json: newTask,
+        // })
+        // return await res.json()
       } catch (error: any) {
         throw error.response?.data?.message || 'Something went wrong'
       }

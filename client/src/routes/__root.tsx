@@ -24,11 +24,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       location.pathname.startsWith(path),
     )
 
-    useEffect(() => {
-      router.update({
-        context: { session },
-      })
-    }, [session])
+
 
 
     if (isPending)

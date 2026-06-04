@@ -8,6 +8,8 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
+  SidebarTrigger,
+  useSidebar,
 } from '@/components/ui/sidebar'
 import { Card } from './ui/card'
 import { SlidingNumber } from '@/components/ui/slider-number'
@@ -40,6 +42,8 @@ import {
   useMarkAgendaDone,
   useMissedYesterday,
 } from '@/hooks/use-agenda'
+import { THEMES, type ThemeName } from '@/lib/themes'
+import { useUpdateTheme } from '@/hooks/use-theme'
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -55,6 +59,8 @@ function isOverdueTask(dateStr: string | null, isDone: boolean): boolean {
 // ─── component ────────────────────────────────────────────────────────────────
 
 const SideBar = () => {
+
+  const { isMobile } = useSidebar()
   // ── clock ─────────────────────────────────────────────────────────────────
   const [hours, setHours] = useState(new Date().getHours())
   const [minutes, setMinutes] = useState(new Date().getMinutes())
@@ -74,9 +80,10 @@ const SideBar = () => {
 
   // ── auth & navigation ─────────────────────────────────────────────────────
   const navigate = useNavigate()
-  const { user } = useAuthStore()
+  const { user, userProfile } = useAuthStore()
   const routerState = useRouterState()
   const currentPath = routerState.location.pathname
+  const updateTheme = useUpdateTheme()
 
   // ── remote data ───────────────────────────────────────────────────────────
   const { data: remoteTasks = [] } = useTasks()
@@ -197,11 +204,16 @@ const SideBar = () => {
     <Sidebar collapsible="icon" variant="inset">
       {/* ── Header ── */}
       <SidebarHeader className="bg-yellow-100">
-        <div className="flex flex-row gap-2 items-center justify-center">
-          <Stethoscope size={28} className="text-yellow-600" />
-          <span className="font-story text-[26px] font-bold text-yellow-700">
-            PNLE {new Date().getFullYear()}
-          </span>
+        <div className="flex flex-row gap-2 items-center justify-between">  {/* justify-between */}
+          <div className="flex flex-row gap-2 items-center">
+            <Stethoscope size={28} className="text-yellow-600" />
+            <span className="font-story text-[26px] font-bold text-yellow-700">
+              PNLE {new Date().getFullYear()}
+            </span>
+          </div>
+          {isMobile && (
+            <SidebarTrigger className="text-yellow-600 hover:bg-yellow-200" />
+          )}
         </div>
 
         {/* Countdown + review progress bar */}
@@ -348,11 +360,10 @@ const SideBar = () => {
                     className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
                   />
                   <span
-                    className={`truncate text-xs ${
-                      item.is_done
-                        ? 'line-through cursor-not-allowed text-gray-400'
-                        : 'text-yellow-800'
-                    }`}
+                    className={`truncate text-xs ${item.is_done
+                      ? 'line-through cursor-not-allowed text-gray-400'
+                      : 'text-yellow-800'
+                      }`}
                   >
                     {item.title}
                   </span>
@@ -394,11 +405,10 @@ const SideBar = () => {
                   <SidebarMenuItem key={to}>
                     <Link
                       to={to}
-                      className={`flex items-center gap-2 w-full px-2 py-1.5 rounded-lg transition-colors font-mono text-sm font-semibold ${
-                        isActive
-                          ? 'bg-yellow-200 text-yellow-800'
-                          : 'text-yellow-800 hover:bg-yellow-100'
-                      }`}
+                      className={`flex items-center gap-2 w-full px-2 py-1.5 rounded-lg transition-colors font-mono text-sm font-semibold ${isActive
+                        ? 'bg-yellow-200 text-yellow-800'
+                        : 'text-yellow-800 hover:bg-yellow-100'
+                        }`}
                     >
                       {icon}
                       <span className="truncate">{label}</span>
@@ -414,6 +424,36 @@ const SideBar = () => {
 
       {/* ── Footer ── */}
       <SidebarFooter>
+        {/* ── Theme Picker ── */}
+        <div className="px-1 pb-1">
+          <p className="text-[10px] text-yellow-600 font-medium mb-1.5 uppercase tracking-wider">
+            Color Theme
+          </p>
+          <div className="flex gap-1.5 flex-wrap">
+            {THEMES.map((theme) => {
+              const isActive = (userProfile?.themeColor) === theme.name
+              return (
+                <button
+                  key={theme.name}
+                  title={theme.label}
+                  onClick={() => updateTheme.mutate(theme.name as ThemeName)}
+                  disabled={updateTheme.isPending}
+                  style={{
+                    backgroundColor: theme.swatch,
+                    // ring matches each theme's own swatch color
+                    outline: isActive ? `3px solid ${theme.swatch}` : 'none',
+                    outlineOffset: isActive ? '2px' : '0',
+                  }}
+                  className={`w-7 h-7 rounded-full transition-all duration-200 cursor-pointer flex-shrink-0 ${isActive ? 'scale-110' : 'hover:scale-110 opacity-80 hover:opacity-100'
+                    }`}
+                />
+              )
+            })}
+          </div>
+        </div>
+
+        <Separator className="bg-yellow-100" />
+
         <div className="flex gap-2 w-full">
           <Button
             variant="outline"

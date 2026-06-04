@@ -3,7 +3,7 @@ import { type ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
-	const { data: session, isPending, error } = useSession();
+	const { data: session, isPending } = useSession();
 
 	if (isPending) {
 		return (

@@ -5,7 +5,9 @@ import { loginUserController } from "./login-user";
 import { signOutUser } from "./sign-out";
 import { CreateUserValueSchema, LoginUserValueSchema } from "./dto/user.dto";
 import { BadRequestError } from "@/utils/errors";
-
+import { authMiddleware } from "@/middlewares/auth-middleware";
+import { getProfileController } from "./get-profile";
+import { updateThemeController } from "./update-theme";
 
 const userRoutes = new Hono()
 	.post(
@@ -24,6 +26,8 @@ const userRoutes = new Hono()
 		}),
 		(c) => loginUserController(c, c.req.valid("json"))
 	)
-	.post("/logout", signOutUser);
+	.post("/logout", signOutUser)
+	.get("/profile", authMiddleware, getProfileController)
+	.patch("/theme", authMiddleware, updateThemeController);
 
 export default userRoutes;

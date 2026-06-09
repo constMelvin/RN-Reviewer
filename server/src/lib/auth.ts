@@ -1,3 +1,9 @@
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { createDbClient } from "../db/create-db-client";
+import { openAPI, username } from "better-auth/plugins";
+import { envConfig } from "../env";
+
 export const auth = betterAuth({
     database: drizzleAdapter(createDbClient(), {
         provider: "pg",

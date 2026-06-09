@@ -26,7 +26,7 @@ const app = new Hono<HonoEnv>()
 			origin: [
 				"http://localhost:3000",
 				"http://192.168.2.4:3000",
-				envConfig.FRONTEND_URL,
+				...envConfig.FRONTEND_URL.split(","),
 			],
 			credentials: true,
 		})

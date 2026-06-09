@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { createDbClient } from "../db/create-db-client";
-import { openAPI, username } from "better-auth/plugins";
+import { oAuthProxy, openAPI, username } from "better-auth/plugins";
 import { envConfig } from "../env";
 
 export const auth = betterAuth({
@@ -9,10 +9,13 @@ export const auth = betterAuth({
         provider: "pg",
     }),
     emailAndPassword: { enabled: true },
-    plugins: [openAPI(), username()],
+    plugins: [openAPI(), username(), oAuthProxy({
+        productionURL: envConfig.BETTER_AUTH_URL,
+        secret: envConfig.OAUTH_PROXY_SECRET,
+    })],
     trustedOrigins: [
         "http://localhost:3000",
-        ...envConfig.FRONTEND_URL.split(","),
+        ...envConfig.FRONTEND_URL.split(",").map(u => u.trim()),
     ],
     trustHost: true,
     baseURL: envConfig.BETTER_AUTH_URL,

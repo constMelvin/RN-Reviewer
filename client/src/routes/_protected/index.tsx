@@ -1,16 +1,19 @@
 import Homepage from '@/components/home-page'
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import LandingPage from '@/components/landing-page'
+import { useSession } from '@/lib/auth-client'
+import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_protected/')({
-  beforeLoad: ({ context }) => {
-    if (!context.session) {
-      throw redirect({ to: '/login' })
-    }
-  },
   component: App,
 })
 
 function App() {
+  const { data: session } = useSession()
+
+  if (!session) {
+    return <LandingPage />
+  }
+
   return (
     <div>
       <Homepage />

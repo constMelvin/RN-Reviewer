@@ -7,7 +7,11 @@ import {
 // import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 // import { TanstackDevtools } from '@tanstack/react-devtools'
 
-import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar'
 import SideBarUi from '@/components/side-bar'
 import Header from '@/components/header'
 import type { RouterContext } from '@/@types/context'
@@ -20,12 +24,11 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   component: () => {
     const location = useLocation()
     const { data: session, isPending } = useSession()
-    const hideSidebar = ['/login', '/sign-up'].some((path) =>
+    const isAuthPage = ['/login', '/sign-up'].some((path) =>
       location.pathname.startsWith(path),
     )
-
-
-
+    const isLanding = location.pathname === '/' && !session
+    const hideSidebar = isAuthPage || isLanding
 
     if (isPending)
       return (
@@ -84,17 +87,15 @@ export const Route = createRootRouteWithContext<RouterContext>()({
           {!hideSidebar && <SideBarUi />}
 
           <SidebarInset>
-            <div className="min-h-screen bg-[#f8fafc] relative overflow-hidden">
-              <CircuitBoardBackground />
+            <div
+              className={`min-h-screen relative overflow-hidden ${hideSidebar ? '' : 'bg-[#f8fafc]'}`}
+            >
+              {!hideSidebar && <CircuitBoardBackground />}
 
               <main className="relative z-10" role="main">
                 {!hideSidebar && <Header />}
                 {/* Mobile trigger — only shows when sidebar is hidden on small screens */}
-                {!hideSidebar && (
-                  <div className="md:hidden fixed top-3 left-3 z-50">
-                    <SidebarTrigger />
-                  </div>
-                )}
+
                 <Outlet />
               </main>
             </div>

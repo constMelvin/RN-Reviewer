@@ -553,8 +553,8 @@ const Reviewer = () => {
     }
 
     return (
-      <div className="grid w-full [&>div]:max-h-80 [&>div]:border [&>div]:rounded-lg">
-        <Table>
+      <div className="grid w-full overflow-x-auto [&>div]:max-h-80 [&>div]:border [&>div]:rounded-lg">
+        <Table className="min-w-[700px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
@@ -684,14 +684,14 @@ const Reviewer = () => {
 
   // ── render ────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col w-full m-2 gap-4">
+    <div className="flex flex-col w-full px-3 sm:px-6 py-2 gap-4">
       {/* ── Page title ── */}
-      <span className="flex items-center justify-center text-5xl font-story border w-8/12 bg-yellow-200 text-yellow-700 pl-5 py-2 mx-auto rounded-xl">
+      <span className="flex items-center justify-center text-2xl sm:text-3xl md:text-5xl font-story border w-full md:w-8/12 bg-yellow-200 text-yellow-700 px-3 sm:pl-5 py-2 mx-auto rounded-xl text-center">
         PNLE Concept Reviewer
       </span>
 
       {/* ── NP Tabs (NEW) — replaces sidebar anchor links ── */}
-      <div className="flex w-8/12 mx-auto gap-2 bg-yellow-200">
+      <div className="flex w-full md:w-8/12 mx-auto gap-2 bg-yellow-200 overflow-x-auto rounded-lg p-1">
         {moduleArr.map((np) => {
           const exists = sortedBook.some((b) => b.book_type === np)
           const overdue = overdueCounts[np] ?? 0
@@ -702,7 +702,7 @@ const Reviewer = () => {
                 setActiveNP(np)
                 setSearchQuery('')
               }}
-              className={`relative px-5 py-2 rounded-lg text-sm font-medium border transition-colors cursor-pointer ${
+              className={`relative shrink-0 px-3 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-medium border transition-colors cursor-pointer ${
                 activeNP === np
                   ? 'bg-yellow-400 text-white border-yellow-400'
                   : exists
@@ -722,9 +722,9 @@ const Reviewer = () => {
         })}
       </div>
 
-      <div className="flex flex-row gap-6 w-full">
+      <div className="flex flex-col lg:flex-row gap-6 w-full">
         {/* ── Sidebar — now shows per-topic progress (NEW) ── */}
-        <div className="flex flex-col border w-72 h-fit border-yellow-400 rounded-2xl p-5 sticky top-4 gap-3 bg-gray-50">
+        <div className="flex flex-col border w-full lg:w-72 h-fit border-yellow-400 rounded-2xl p-5 lg:sticky lg:top-4 gap-3 bg-gray-50">
           <span className="text-yellow-700 text-xl font-bold font-story">
             {activeNP} — Progress
           </span>
@@ -734,18 +734,18 @@ const Reviewer = () => {
             {sidebarTopics.length > 0 ? (
               sidebarTopics.map((t) => (
                 <div key={t.id}>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="font-bold text-lg text-muted-foreground truncate max-w-[140px]">
+                  <div className="flex justify-between text-xs mb-1 gap-2">
+                    <span className="font-bold text-base sm:text-lg text-muted-foreground truncate max-w-[140px]">
                       {t.label}
                     </span>
                     <span
-                      className={
+                      className={`whitespace-nowrap ${
                         t.pct === 100
                           ? 'text-green-600 font-medium'
                           : t.pct > 0
                             ? 'text-amber-600'
                             : 'text-red-500'
-                      }
+                      }`}
                     >
                       {t.mastered}/{t.total} mastered
                     </span>
@@ -781,7 +781,7 @@ const Reviewer = () => {
                     + Add Topic
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-w-[95vw] sm:max-w-lg">
                   <DialogHeader>
                     <DialogTitle>Add New Topic</DialogTitle>
                     <DialogDescription>
@@ -806,11 +806,11 @@ const Reviewer = () => {
                       setTopics((prev) => ({ ...prev, links: e.target.value }))
                     }
                   />
-                  <div className="flex gap-3 items-center">
+                  <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
                     <Label>Deadline:</Label>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <div className="relative w-[200px]">
+                        <div className="relative w-full sm:w-[200px]">
                           <Button
                             type="button"
                             variant="outline"
@@ -876,7 +876,7 @@ const Reviewer = () => {
                   + Add Books
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-[95vw] sm:max-w-lg">
                 <DialogHeader>
                   <DialogTitle>Create Module</DialogTitle>
                   <DialogDescription>
@@ -890,7 +890,7 @@ const Reviewer = () => {
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="outline"
-                          className="flex justify-start w-fit cursor-pointer bg-yellow-200 hover:bg-yellow-200/90"
+                          className="flex justify-start w-full sm:w-fit cursor-pointer bg-yellow-200 hover:bg-yellow-200/90"
                         >
                           Select Book Type: {selectBook.book_type || 'None'}
                         </Button>
@@ -957,21 +957,21 @@ const Reviewer = () => {
         </div>
 
         {/* ── Main content — shows only active NP book ── */}
-        <div className="flex flex-col mr-5 w-full gap-4">
+        <div className="flex flex-col w-full lg:mr-5 gap-4">
           {activeBook ? (
             <section className="flex flex-col w-full">
-              <Card className="flex flex-col w-full p-4 border-yellow-400 gap-3">
+              <Card className="flex flex-col w-full p-3 sm:p-4 border-yellow-400 gap-3">
                 {/* Book header */}
-                <div className="flex justify-between items-start mx-2">
-                  <div>
-                    <span className="text-yellow-700 text-xl font-medium">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-3 mx-1 sm:mx-2">
+                  <div className="w-full sm:w-auto">
+                    <span className="text-yellow-700 text-lg sm:text-xl font-medium break-words">
                       {activeBook.book_type} : {activeBook.book_title}
                     </span>
                     {/* Overall progress bar under title (NEW) */}
                     <div className="flex items-center gap-3 mt-1.5">
                       <Progress
                         value={bookProgress(activeBook)}
-                        className="w-40 h-1.5 [&>div]:bg-yellow-400"
+                        className="w-32 sm:w-40 h-1.5 [&>div]:bg-yellow-400"
                       />
                       <span className="text-xs text-muted-foreground">
                         {bookProgress(activeBook)}% complete
@@ -979,11 +979,11 @@ const Reviewer = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-row gap-2">
+                  <div className="flex flex-row gap-2 w-full sm:w-auto">
                     {/* Add Subtopic */}
                     <DropdownMenu>
-                      <DropdownMenuTrigger>
-                        <Button className="flex flex-row items-center bg-yellow-200 text-yellow-700 hover:bg-yellow-200/80 cursor-pointer">
+                      <DropdownMenuTrigger asChild className="w-full sm:w-auto">
+                        <Button className="flex flex-row items-center justify-center w-full sm:w-auto bg-yellow-200 text-yellow-700 hover:bg-yellow-200/80 cursor-pointer">
                           <BookOpenCheck color="var(--color-yellow-600)" />
                           + Subtopic <ChevronDown className="ml-1 h-4 w-4" />
                         </Button>
@@ -1006,7 +1006,7 @@ const Reviewer = () => {
                                 {row.topics}
                               </DropdownMenuItem>
                             </SheetTrigger>
-                            <SheetContent>
+                            <SheetContent className="w-full sm:max-w-md">
                               <SheetHeader>
                                 <SheetTitle>Add Subtopic</SheetTitle>
                                 <SheetDescription>
@@ -1042,11 +1042,11 @@ const Reviewer = () => {
                                     }
                                   />
                                 </div>
-                                <div className="flex gap-3 items-center">
+                                <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
                                   <Label>Deadline:</Label>
                                   <Popover>
                                     <PopoverTrigger asChild>
-                                      <div className="relative w-[200px]">
+                                      <div className="relative w-full sm:w-[200px]">
                                         <Button
                                           type="button"
                                           variant="outline"
@@ -1114,7 +1114,7 @@ const Reviewer = () => {
                 </div>
 
                 {/* Mini stats row (NEW) */}
-                <div className="grid grid-cols-3 gap-3 mx-2">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 mx-1 sm:mx-2">
                   {[
                     {
                       label: 'Topics',
@@ -1139,12 +1139,12 @@ const Reviewer = () => {
                   ].map(({ label, value, color }) => (
                     <div
                       key={label}
-                      className="bg-yellow-50 border border-yellow-200 rounded-lg p-3"
+                      className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 sm:p-3"
                     >
-                      <div className="text-xs text-yellow-700 flex items-center gap-1 mb-1">
+                      <div className="text-[10px] sm:text-xs text-yellow-700 flex items-center gap-1 mb-1">
                         {label}
                       </div>
-                      <div className={`text-xl font-semibold ${color}`}>
+                      <div className={`text-base sm:text-xl font-semibold ${color}`}>
                         {value}
                       </div>
                     </div>
@@ -1152,7 +1152,7 @@ const Reviewer = () => {
                 </div>
 
                 {/* Search bar (NEW) */}
-                <div className="relative mx-2">
+                <div className="relative mx-1 sm:mx-2">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input
                     type="text"
@@ -1176,12 +1176,12 @@ const Reviewer = () => {
               </Card>
             </section>
           ) : (
-            <Card className="flex w-full p-10 border-yellow-400 justify-center items-center flex-col gap-3">
+            <Card className="flex w-full p-6 sm:p-10 border-yellow-400 justify-center items-center flex-col gap-3">
               <span className="text-5xl">📚</span>
-              <p className="text-yellow-700 font-medium text-lg">
+              <p className="text-yellow-700 font-medium text-lg text-center">
                 No book for {activeNP} yet.
               </p>
-              <p className="text-muted-foreground text-sm">
+              <p className="text-muted-foreground text-sm text-center">
                 Click "+ Add Books" in the sidebar to create one.
               </p>
             </Card>

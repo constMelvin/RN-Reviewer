@@ -1,1 +1,1 @@
-export const NLE_DATE = new Date('2026-08-29')
+export const NLE_DATE = new Date(`${import.meta.env.VITE_NLE_DATE}`)

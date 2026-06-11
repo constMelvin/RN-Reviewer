@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProtectedIndexRouteImport } from './routes/_protected/index'
 import { Route as PublicSignUpRouteImport } from './routes/_public/sign-up'
 import { Route as PublicLoginRouteImport } from './routes/_public/login'
+import { Route as PublicLandingRouteImport } from './routes/_public/landing'
 import { Route as ProtectedTaskTrackerRouteImport } from './routes/_protected/task-tracker'
 import { Route as ProtectedScoreTaskRouteImport } from './routes/_protected/score-task'
 import { Route as ProtectedReviewerRouteImport } from './routes/_protected/reviewer'
@@ -30,6 +31,11 @@ const PublicSignUpRoute = PublicSignUpRouteImport.update({
 const PublicLoginRoute = PublicLoginRouteImport.update({
   id: '/_public/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicLandingRoute = PublicLandingRouteImport.update({
+  id: '/_public/landing',
+  path: '/landing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedTaskTrackerRoute = ProtectedTaskTrackerRouteImport.update({
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/reviewer': typeof ProtectedReviewerRoute
   '/score-task': typeof ProtectedScoreTaskRoute
   '/task-tracker': typeof ProtectedTaskTrackerRoute
+  '/landing': typeof PublicLandingRoute
   '/login': typeof PublicLoginRoute
   '/sign-up': typeof PublicSignUpRoute
   '/': typeof ProtectedIndexRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/reviewer': typeof ProtectedReviewerRoute
   '/score-task': typeof ProtectedScoreTaskRoute
   '/task-tracker': typeof ProtectedTaskTrackerRoute
+  '/landing': typeof PublicLandingRoute
   '/login': typeof PublicLoginRoute
   '/sign-up': typeof PublicSignUpRoute
   '/': typeof ProtectedIndexRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/_protected/reviewer': typeof ProtectedReviewerRoute
   '/_protected/score-task': typeof ProtectedScoreTaskRoute
   '/_protected/task-tracker': typeof ProtectedTaskTrackerRoute
+  '/_public/landing': typeof PublicLandingRoute
   '/_public/login': typeof PublicLoginRoute
   '/_public/sign-up': typeof PublicSignUpRoute
   '/_protected/': typeof ProtectedIndexRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/reviewer'
     | '/score-task'
     | '/task-tracker'
+    | '/landing'
     | '/login'
     | '/sign-up'
     | '/'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/reviewer'
     | '/score-task'
     | '/task-tracker'
+    | '/landing'
     | '/login'
     | '/sign-up'
     | '/'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/_protected/reviewer'
     | '/_protected/score-task'
     | '/_protected/task-tracker'
+    | '/_public/landing'
     | '/_public/login'
     | '/_public/sign-up'
     | '/_protected/'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   ProtectedReviewerRoute: typeof ProtectedReviewerRoute
   ProtectedScoreTaskRoute: typeof ProtectedScoreTaskRoute
   ProtectedTaskTrackerRoute: typeof ProtectedTaskTrackerRoute
+  PublicLandingRoute: typeof PublicLandingRoute
   PublicLoginRoute: typeof PublicLoginRoute
   PublicSignUpRoute: typeof PublicSignUpRoute
   ProtectedIndexRoute: typeof ProtectedIndexRoute
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof PublicLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_public/landing': {
+      id: '/_public/landing'
+      path: '/landing'
+      fullPath: '/landing'
+      preLoaderRoute: typeof PublicLandingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_protected/task-tracker': {
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProtectedReviewerRoute: ProtectedReviewerRoute,
   ProtectedScoreTaskRoute: ProtectedScoreTaskRoute,
   ProtectedTaskTrackerRoute: ProtectedTaskTrackerRoute,
+  PublicLandingRoute: PublicLandingRoute,
   PublicLoginRoute: PublicLoginRoute,
   PublicSignUpRoute: PublicSignUpRoute,
   ProtectedIndexRoute: ProtectedIndexRoute,

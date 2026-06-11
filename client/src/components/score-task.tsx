@@ -196,7 +196,7 @@ const ScoreTask = () => {
   // ── render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex justify-center items-center mx-auto w-full md:w-8/12">
+    <div className="flex justify-center items-center mx-auto w-full px-3 sm:px-6 md:px-0 md:w-8/12">
       <Card className="w-full p-4 border border-yellow-400">
         {/* ── header ── */}
         <CardTitle className="flex items-center gap-2 text-4xl font-semibold mb-4">

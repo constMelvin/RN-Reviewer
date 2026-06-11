@@ -44,6 +44,7 @@ import {
 } from '@/hooks/use-agenda'
 import { THEMES, type ThemeName } from '@/lib/themes'
 import { useUpdateTheme } from '@/hooks/use-theme'
+import { NLE_DATE } from '@/constant/date'
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -59,7 +60,6 @@ function isOverdueTask(dateStr: string | null, isDone: boolean): boolean {
 // ─── component ────────────────────────────────────────────────────────────────
 
 const SideBar = () => {
-
   const { isMobile } = useSidebar()
   // ── clock ─────────────────────────────────────────────────────────────────
   const [hours, setHours] = useState(new Date().getHours())
@@ -71,7 +71,7 @@ const SideBar = () => {
 
   // ── NLE countdown ─────────────────────────────────────────────────────────
   const [daysLeft, setDaysLeft] = useState(0)
-  const NLE_DATE = new Date('2026-08-29')
+  const NLE_DATES = new Date(`${NLE_DATE}`)
   const TOTAL_REVIEW_DAYS = 365
   const reviewPct = Math.min(
     100,
@@ -141,7 +141,8 @@ const SideBar = () => {
   }, [])
 
   useEffect(() => {
-    const updateDays = () => setDaysLeft(differenceInDays(NLE_DATE, new Date()))
+    const updateDays = () =>
+      setDaysLeft(differenceInDays(NLE_DATES, new Date()))
     updateDays()
     const interval = setInterval(updateDays, 60000)
     return () => clearInterval(interval)
@@ -150,7 +151,7 @@ const SideBar = () => {
   // ── handlers ──────────────────────────────────────────────────────────────
   const handleLogout = async () => {
     await signOut()
-    router.navigate({ to: '/login' })
+    router.navigate({ to: '/' })
   }
 
   const onClickTask = () => {
@@ -204,7 +205,9 @@ const SideBar = () => {
     <Sidebar collapsible="icon" variant="inset">
       {/* ── Header ── */}
       <SidebarHeader className="bg-yellow-100">
-        <div className="flex flex-row gap-2 items-center justify-between">  {/* justify-between */}
+        <div className="flex flex-row gap-2 items-center justify-between">
+          {' '}
+          {/* justify-between */}
           <div className="flex flex-row gap-2 items-center">
             <Stethoscope size={28} className="text-yellow-600" />
             <span className="font-story text-[26px] font-bold text-yellow-700">
@@ -236,7 +239,7 @@ const SideBar = () => {
               className="h-1.5 [&>div]:bg-yellow-400"
             />
             <div className="text-[9px] text-yellow-600 mt-1">
-              Target: {format(NLE_DATE, 'MMM d, yyyy')}
+              Target: {format(NLE_DATES, 'MMM d, yyyy')}
             </div>
           </div>
         </div>
@@ -360,10 +363,11 @@ const SideBar = () => {
                     className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
                   />
                   <span
-                    className={`truncate text-xs ${item.is_done
-                      ? 'line-through cursor-not-allowed text-gray-400'
-                      : 'text-yellow-800'
-                      }`}
+                    className={`truncate text-xs ${
+                      item.is_done
+                        ? 'line-through cursor-not-allowed text-gray-400'
+                        : 'text-yellow-800'
+                    }`}
                   >
                     {item.title}
                   </span>
@@ -405,10 +409,11 @@ const SideBar = () => {
                   <SidebarMenuItem key={to}>
                     <Link
                       to={to}
-                      className={`flex items-center gap-2 w-full px-2 py-1.5 rounded-lg transition-colors font-mono text-sm font-semibold ${isActive
-                        ? 'bg-yellow-200 text-yellow-800'
-                        : 'text-yellow-800 hover:bg-yellow-100'
-                        }`}
+                      className={`flex items-center gap-2 w-full px-2 py-1.5 rounded-lg transition-colors font-mono text-sm font-semibold ${
+                        isActive
+                          ? 'bg-yellow-200 text-yellow-800'
+                          : 'text-yellow-800 hover:bg-yellow-100'
+                      }`}
                     >
                       {icon}
                       <span className="truncate">{label}</span>
@@ -431,7 +436,7 @@ const SideBar = () => {
           </p>
           <div className="flex gap-1.5 flex-wrap">
             {THEMES.map((theme) => {
-              const isActive = (userProfile?.themeColor) === theme.name
+              const isActive = userProfile?.themeColor === theme.name
               return (
                 <button
                   key={theme.name}
@@ -444,8 +449,11 @@ const SideBar = () => {
                     outline: isActive ? `3px solid ${theme.swatch}` : 'none',
                     outlineOffset: isActive ? '2px' : '0',
                   }}
-                  className={`w-7 h-7 rounded-full transition-all duration-200 cursor-pointer flex-shrink-0 ${isActive ? 'scale-110' : 'hover:scale-110 opacity-80 hover:opacity-100'
-                    }`}
+                  className={`w-7 h-7 rounded-full transition-all duration-200 cursor-pointer flex-shrink-0 ${
+                    isActive
+                      ? 'scale-110'
+                      : 'hover:scale-110 opacity-80 hover:opacity-100'
+                  }`}
                 />
               )
             })}

@@ -88,9 +88,9 @@ const Login = () => {
   }
 
   return (
-    <div className="h-screen flex items-center justify-center">
-      <div className="w-full h-full grid lg:grid-cols-2 p-4 gap-5">
-        <div className="mx-auto max-w-md w-full flex flex-col items-center px-20 py-5 rounded-lg bg-yellow-100">
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-full min-h-screen grid lg:grid-cols-2 p-4 gap-5">
+        <div className="mx-auto max-w-md w-full flex flex-col items-center justify-center px-6 sm:px-12 md:px-20 py-8 rounded-lg bg-yellow-100">
           <Logo className="h-25 w-25" />
           <p className="text-xl font-semibold tracking-tight">
             Log in to PNLE {new Date().getFullYear()}

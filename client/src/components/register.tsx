@@ -123,23 +123,23 @@ const Register = () => {
   }
 
   return (
-    <div className="h-screen flex items-center justify-center">
-      <div className="w-full h-full grid lg:grid-cols-2 p-4 gap-5 min-h-screen">
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-full min-h-screen grid lg:grid-cols-2 p-4 gap-5">
         <div className="flex items-center justify-center">
-          <div className="max-w-md w-full h-full flex flex-col items-center px-20 py-3 rounded-lg bg-yellow-100">
+          <div className="max-w-md w-full flex flex-col items-center justify-center px-6 sm:px-12 md:px-20 py-8 rounded-lg bg-yellow-100">
             <Logo className="h-20 w-20" />
             <p className="my-2 font-semibold text-xl tracking-tight">
               Sign up for PNLE Reviewer
             </p>
 
-            <div className="space-y-1">
-              <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-3 w-full mt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
                 <div className="space-y-2">
                   <Label htmlFor="firstname" className="block text-sm">
                     Firstname
                   </Label>
                   <Input
-                    className="max-w-xs focus-visible:border-yellow-500 focus-visible:ring-[3px] focus-visible:ring-yellow-500/20 border-yellow-400"
+                    className="w-full focus-visible:border-yellow-500 focus-visible:ring-[3px] focus-visible:ring-yellow-500/20 border-yellow-400"
                     type="text"
                     placeholder="Enter First Name"
                     required
@@ -153,7 +153,7 @@ const Register = () => {
                     M/I
                   </Label>
                   <Input
-                    className="max-w-xs focus-visible:border-yellow-500 focus-visible:ring-[3px] focus-visible:ring-yellow-500/20 border-yellow-400"
+                    className="w-full focus-visible:border-yellow-500 focus-visible:ring-[3px] focus-visible:ring-yellow-500/20 border-yellow-400"
                     placeholder="Enter M/I"
                     type="text"
                     required
@@ -166,7 +166,7 @@ const Register = () => {
                     Lastname
                   </Label>
                   <Input
-                    className="max-w-xs focus-visible:border-yellow-500 focus-visible:ring-[3px] focus-visible:ring-yellow-500/20 border-yellow-400"
+                    className="w-full focus-visible:border-yellow-500 focus-visible:ring-[3px] focus-visible:ring-yellow-500/20 border-yellow-400"
                     placeholder="Enter Last Name"
                     type="text"
                     required
@@ -181,7 +181,7 @@ const Register = () => {
                 </Label>
                 <div className="relative">
                   <Input
-                    className="max-w-xs focus-visible:border-yellow-500 focus-visible:ring-[3px] focus-visible:ring-yellow-500/20 border-yellow-400"
+                    className="w-full focus-visible:border-yellow-500 focus-visible:ring-[3px] focus-visible:ring-yellow-500/20 border-yellow-400"
                     type="text"
                     required
                     placeholder="Enter Username"
@@ -210,7 +210,7 @@ const Register = () => {
                 </Label>
                 <div className="relative">
                   <Input
-                    className="max-w-xs focus-visible:border-yellow-500 focus-visible:ring-[3px] focus-visible:ring-yellow-500/20 border-yellow-400"
+                    className="w-full focus-visible:border-yellow-500 focus-visible:ring-[3px] focus-visible:ring-yellow-500/20 border-yellow-400"
                     placeholder="Enter Email"
                     type="email"
                     required
@@ -241,7 +241,7 @@ const Register = () => {
                 </div>
                 <div className="relative">
                   <Input
-                    className="max-w-xs focus-visible:border-yellow-500 focus-visible:ring-[3px] focus-visible:ring-yellow-500/20 border-yellow-400"
+                    className="w-full focus-visible:border-yellow-500 focus-visible:ring-[3px] focus-visible:ring-yellow-500/20 border-yellow-400"
                     onChange={(e) =>
                       SetData((prev) => ({ ...prev, password: e.target.value }))
                     }

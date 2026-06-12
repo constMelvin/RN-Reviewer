@@ -6,8 +6,8 @@ import { auth } from "./lib/auth";
 import { logger } from "hono/logger";
 import { errorHandlerMiddleware } from "./middlewares/error-handler";
 import {
-	relaxedLimiter,
-	securityMiddleware,
+  relaxedLimiter,
+  securityMiddleware,
 } from "./middlewares/securityMiddleware";
 import userRoutes from "./controllers/users/user.route";
 import { cors } from "hono/cors";
@@ -17,29 +17,29 @@ import { envConfig } from "./env";
 
 const app = new Hono<HonoEnv>()
 
-	/* ---------- GLOBAL MIDDLEWARE ---------- */
-	.use("*", securityMiddleware)
-	.use("*", relaxedLimiter)
-	.use(
-		"*",
-		cors({
-			origin: [
-				"http://localhost:3000",
-				"http://192.168.2.4:3000",
-				...envConfig.FRONTEND_URL.split(","),
-			],
-			credentials: true,
-		})
-	)
-	.use(logger())
+  /* ---------- GLOBAL MIDDLEWARE ---------- */
+  .use("*", securityMiddleware)
+  .use("*", relaxedLimiter)
+  .use(
+    "*",
+    cors({
+      origin: [
+        "http://localhost:3000",
+        "http://192.168.2.4:3000",
+        ...envConfig.FRONTEND_URL.split(","),
+      ],
+      credentials: true,
+    }),
+  )
+  .use(logger())
 
-	/* ---------- API ROUTES ---------- */
-	.on(["POST", "GET"], "/api/auth/**", (c) => auth.handler(c.req.raw))
-	.route("/api/user", userRoutes)
-	.route("/api/v1", rootRoutes)
-	.get("/api/health", relaxedLimiter, (c: Context) => {
-		return c.json({ message: "Server is up and healthy." }, 200);
-	});
+  /* ---------- API ROUTES ---------- */
+  .on(["POST", "GET"], "/api/auth/**", (c) => auth.handler(c.req.raw))
+  .route("/api/user", userRoutes)
+  .route("/api/v1", rootRoutes)
+  .get("/api/health", relaxedLimiter, (c: Context) => {
+    return c.json({ message: "Server is up and healthy." }, 200);
+  });
 
 /* ---------- STATIC ASSETS + SPA FALLBACK ---------- */
 
@@ -113,5 +113,10 @@ const app = new Hono<HonoEnv>()
 /* ---------- ERROR HANDLER ---------- */
 app.onError(errorHandlerMiddleware);
 
+console.log("Port:", envConfig.PORT);
+
 export type AppType = typeof app;
-export default app;
+export default {
+  port: envConfig.PORT,
+  fetch: app.fetch,
+};

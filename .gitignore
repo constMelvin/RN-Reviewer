@@ -24,6 +24,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 backend/.env.*
 client/.env.*
 .env.production
+.env.prod
 
 
 # caches
@@ -44,6 +45,3 @@ client/node_modules
 server/node_modules
 server/dist
 client/dist
-
-#migration
-server/src/db/migrations

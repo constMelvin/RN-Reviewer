@@ -1,0 +1,1 @@
+ALTER TABLE "score" ADD COLUMN "exam_type" text NOT NULL;

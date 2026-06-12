@@ -66,9 +66,9 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { format, differenceInDays } from 'date-fns'
-import { Card, CardContent, CardTitle } from './ui/card'
-import { TextLoop } from './ui/text-loop'
-import { SlidingNumber } from './ui/slider-number'
+import { Card, CardContent, CardTitle } from '../components/ui/card'
+import { TextLoop } from '../components/ui/text-loop'
+import { SlidingNumber } from '../components/ui/slider-number'
 import { useCreateTasks, useTasks, useUpdateTasks } from '@/hooks/use-task'
 import type { Task } from '@/@types/task'
 import { useAuthStore } from '@/store/authStore'

@@ -12,13 +12,12 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
-import SideBarUi from '@/components/side-bar'
+import SideBarUi from '@/pages/side-bar'
 import Header from '@/components/header'
 import type { RouterContext } from '@/@types/context'
 import CircuitBoardBackground from '@/components/CircuitBoardBackground'
 import { useSession } from '@/lib/auth-client'
 import { useEffect } from 'react'
-import { router } from '@/main'
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: () => {
@@ -28,7 +27,19 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       location.pathname.startsWith(path),
     )
     const isLanding = location.pathname === '/' && !session
-    const hideSidebar = isAuthPage || isLanding
+    const isSuperAdmin = location.pathname.startsWith('/super-admin')
+    const hideSidebar = isAuthPage || isLanding || isSuperAdmin
+    const navigate = useNavigate()
+
+    useEffect(() => {
+      if (
+        session?.user?.username === 'superadmin' &&
+        !location.pathname.startsWith('/super-admin/dashboard')
+      ) {
+        console.log('Super admin here __root')
+        navigate({ to: '/super-admin/dashboard' })
+      }
+    }, [session, location.pathname, navigate])
 
     if (isPending)
       return (

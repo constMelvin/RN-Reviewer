@@ -1,4 +1,4 @@
-import Reviewer from '@/components/reviewer'
+import Reviewer from '@/pages/reviewer'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_protected/reviewer')({

@@ -15,7 +15,7 @@ import {
   Award,
   Percent,
 } from 'lucide-react'
-import { Card, CardContent, CardTitle } from './ui/card'
+import { Card, CardContent, CardTitle } from '../components/ui/card'
 import {
   Table,
   TableBody,
@@ -25,8 +25,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { Button } from './ui/button'
-import { Badge } from './ui/badge'
+import { Button } from '../components/ui/button'
+import { Badge } from '../components/ui/badge'
 import { useCreateScore, useScore, type ScoreItem } from '@/hooks/use-score'
 import {
   Dialog,
@@ -36,15 +36,15 @@ import {
   DialogFooter,
   DialogTitle,
   DialogTrigger,
-} from './ui/dialog'
-import { Label } from './ui/label'
-import { Input } from './ui/input'
+} from '../components/ui/dialog'
+import { Label } from '../components/ui/label'
+import { Input } from '../components/ui/input'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from './ui/dropdown-menu'
+} from '../components/ui/dropdown-menu'
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 

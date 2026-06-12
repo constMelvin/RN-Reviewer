@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Logo } from '@/components/logo'
+import { Logo } from '@/pages/logo'
 import { Separator } from '@/components/ui/separator'
 import { Link } from '@tanstack/react-router'
 import { motion } from 'motion/react'

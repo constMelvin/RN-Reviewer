@@ -1,7 +1,8 @@
-import Homepage from '@/components/home-page'
-import LandingPage from '@/components/landing-page'
+import Homepage from '@/pages/home-page'
+import LandingPage from '@/pages/landing-page'
 import { useSession } from '@/lib/auth-client'
 import { createFileRoute } from '@tanstack/react-router'
+import { Navigate } from 'react-router-dom'
 
 export const Route = createFileRoute('/_protected/')({
   component: App,

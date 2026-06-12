@@ -11,12 +11,12 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { Card } from './ui/card'
+import { Card } from '../components/ui/card'
 import { SlidingNumber } from '@/components/ui/slider-number'
 import { useEffect, useState, useMemo } from 'react'
 import { format, differenceInDays } from 'date-fns'
-import { Separator } from './ui/separator'
-import { Button } from './ui/button'
+import { Separator } from '../components/ui/separator'
+import { Button } from '../components/ui/button'
 import { LogOutIcon, Settings, Stethoscope } from 'lucide-react'
 import {
   FcAlarmClock,
@@ -27,12 +27,12 @@ import {
 } from 'react-icons/fc'
 import { FaArrowUpFromBracket } from 'react-icons/fa6'
 import { BsFillClipboardDataFill } from 'react-icons/bs'
-import { Checkbox } from './ui/checkbox'
-import { Input } from './ui/input'
+import { Checkbox } from '../components/ui/checkbox'
+import { Input } from '../components/ui/input'
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import { signOut } from '@/lib/auth-client'
 import { router } from '@/main'
-import { Progress } from './ui/progress'
+import { Progress } from '../components/ui/progress'
 import { useTasks } from '@/hooks/use-task'
 import { useBooks } from '@/hooks/use-book'
 import { useAuthStore } from '@/store/authStore'
@@ -151,7 +151,8 @@ const SideBar = () => {
   // ── handlers ──────────────────────────────────────────────────────────────
   const handleLogout = async () => {
     await signOut()
-    router.navigate({ to: '/' })
+    // Force a full page reload to flush session state
+    window.location.href = '/'
   }
 
   const onClickTask = () => {

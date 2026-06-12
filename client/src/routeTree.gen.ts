@@ -17,6 +17,7 @@ import { Route as ProtectedTaskTrackerRouteImport } from './routes/_protected/ta
 import { Route as ProtectedScoreTaskRouteImport } from './routes/_protected/score-task'
 import { Route as ProtectedReviewerRouteImport } from './routes/_protected/reviewer'
 import { Route as ProtectedHomeRouteImport } from './routes/_protected/home'
+import { Route as ProtectedSuperAdminDashboardRouteImport } from './routes/_protected/super-admin/dashboard'
 
 const ProtectedIndexRoute = ProtectedIndexRouteImport.update({
   id: '/_protected/',
@@ -58,6 +59,12 @@ const ProtectedHomeRoute = ProtectedHomeRouteImport.update({
   path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProtectedSuperAdminDashboardRoute =
+  ProtectedSuperAdminDashboardRouteImport.update({
+    id: '/_protected/super-admin/dashboard',
+    path: '/super-admin/dashboard',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/home': typeof ProtectedHomeRoute
@@ -68,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof PublicLoginRoute
   '/sign-up': typeof PublicSignUpRoute
   '/': typeof ProtectedIndexRoute
+  '/super-admin/dashboard': typeof ProtectedSuperAdminDashboardRoute
 }
 export interface FileRoutesByTo {
   '/home': typeof ProtectedHomeRoute
@@ -78,6 +86,7 @@ export interface FileRoutesByTo {
   '/login': typeof PublicLoginRoute
   '/sign-up': typeof PublicSignUpRoute
   '/': typeof ProtectedIndexRoute
+  '/super-admin/dashboard': typeof ProtectedSuperAdminDashboardRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +98,7 @@ export interface FileRoutesById {
   '/_public/login': typeof PublicLoginRoute
   '/_public/sign-up': typeof PublicSignUpRoute
   '/_protected/': typeof ProtectedIndexRoute
+  '/_protected/super-admin/dashboard': typeof ProtectedSuperAdminDashboardRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +111,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/sign-up'
     | '/'
+    | '/super-admin/dashboard'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/home'
@@ -111,6 +122,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/sign-up'
     | '/'
+    | '/super-admin/dashboard'
   id:
     | '__root__'
     | '/_protected/home'
@@ -121,6 +133,7 @@ export interface FileRouteTypes {
     | '/_public/login'
     | '/_public/sign-up'
     | '/_protected/'
+    | '/_protected/super-admin/dashboard'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +145,7 @@ export interface RootRouteChildren {
   PublicLoginRoute: typeof PublicLoginRoute
   PublicSignUpRoute: typeof PublicSignUpRoute
   ProtectedIndexRoute: typeof ProtectedIndexRoute
+  ProtectedSuperAdminDashboardRoute: typeof ProtectedSuperAdminDashboardRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -192,6 +206,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedHomeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_protected/super-admin/dashboard': {
+      id: '/_protected/super-admin/dashboard'
+      path: '/super-admin/dashboard'
+      fullPath: '/super-admin/dashboard'
+      preLoaderRoute: typeof ProtectedSuperAdminDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -204,6 +225,7 @@ const rootRouteChildren: RootRouteChildren = {
   PublicLoginRoute: PublicLoginRoute,
   PublicSignUpRoute: PublicSignUpRoute,
   ProtectedIndexRoute: ProtectedIndexRoute,
+  ProtectedSuperAdminDashboardRoute: ProtectedSuperAdminDashboardRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

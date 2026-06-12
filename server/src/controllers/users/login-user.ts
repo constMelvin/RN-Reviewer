@@ -31,8 +31,6 @@ export const loginUserController = async (c: Context, body: LoginUserInput) => {
 		throw new UnauthorizedError("Invalid login credentials.");
 	}
 
-	// console.log("data line 32: " + (await authResponse.json()));
-	// MUST forward Set-Cookie headers for session persistence
 	return new Response(
 		JSON.stringify({
 			message: "Login successful",

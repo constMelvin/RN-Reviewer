@@ -40,7 +40,7 @@ services:
     volumes:
       - ./server:/app
       - /app/node_modules
-    command: bun run dev
+    command: bun --hot src/index.ts
 
   frontend:
     build:
@@ -53,11 +53,13 @@ services:
     environment:
       VITE_API_URL: ${VITE_API_URL}
       VITE_NLE_DATE: ${VITE_NLE_DATE}
+      CHOKIDAR_USEPOLLING: "true"
     depends_on:
       - server
     volumes:
       - ./client:/app
       - /app/node_modules
+
     command: npm run dev
 
 volumes:

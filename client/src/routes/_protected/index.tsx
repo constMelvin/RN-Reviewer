@@ -1,5 +1,5 @@
-import Homepage from '@/components/home-page'
-import LandingPage from '@/components/landing-page'
+import Homepage from '@/components/pages/home-page'
+import LandingPage from '@/components/pages/landing-page'
 import { useSession } from '@/lib/auth-client'
 import { createFileRoute } from '@tanstack/react-router'
 

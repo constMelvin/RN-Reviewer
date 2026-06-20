@@ -15,7 +15,7 @@ import {
   Award,
   Percent,
 } from 'lucide-react'
-import { Card, CardContent, CardTitle } from './ui/card'
+import { Card, CardContent, CardTitle } from '../ui/card'
 import {
   Table,
   TableBody,
@@ -24,10 +24,27 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { Button } from './ui/button'
-import { Badge } from './ui/badge'
-import { useCreateScore, useScore, type ScoreItem } from '@/hooks/use-score'
+import { Button } from '../ui/button'
+import { Badge } from '../ui/badge'
+import {
+  useCreateScore,
+  useScore,
+  useEditScore,
+  useDeleteScore,
+  type ScoreItem,
+} from '@/hooks/use-score'
 import {
   Dialog,
   DialogClose,
@@ -36,15 +53,15 @@ import {
   DialogFooter,
   DialogTitle,
   DialogTrigger,
-} from './ui/dialog'
-import { Label } from './ui/label'
-import { Input } from './ui/input'
+} from '../ui/dialog'
+import { Label } from '../ui/label'
+import { Input } from '../ui/input'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from './ui/dropdown-menu'
+} from '../ui/dropdown-menu'
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -103,10 +120,13 @@ function GradeBar({ grade }: any) {
 const ScoreTask = () => {
   const { data: score = [] } = useScore()
   const createScore = useCreateScore()
+  const editScore = useEditScore()
+  const deleteScore = useDeleteScore()
 
-  console.log(score)
-  // Fix: unique IDs, added examType field
-  const [newScore, setNewScore] = useState({
+  const [openDialog, setOpenDialog] = useState(false)
+  const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create')
+
+  const [newScore, setNewScore] = useState<Partial<ScoreItem>>({
     score: 0,
     score_total: 0,
     subject: '',
@@ -181,16 +201,33 @@ const ScoreTask = () => {
 
   // ── handlers ──────────────────────────────────────────────────────────────
 
-  const handleDelete = (score_id: any) =>
-    // setItems((prev) => prev.filter((i) => i.score_id !== score_id))
-    console.log(score_id)
+  const handleDelete = (score_id: any) => {
+    deleteScore.mutate(score_id)
+  }
+
+  const handleEditClick = (item: ScoreItem) => {
+    setDialogMode('edit')
+    setNewScore(item)
+    setOpenDialog(true)
+  }
+
+  const handleAddClick = () => {
+    setDialogMode('create')
+    setNewScore({ score: 0, score_total: 0, subject: '', exam_type: '' })
+    setOpenDialog(true)
+  }
 
   const handleExamChange = (val: any) => {
     setActiveExam(val)
     setActiveSubject('All')
   }
   const handleScoreSubmit = async () => {
-    createScore.mutate(newScore)
+    if (dialogMode === 'edit') {
+      editScore.mutate(newScore)
+    } else {
+      createScore.mutate(newScore as any)
+    }
+    setOpenDialog(false)
   }
 
   // ── render ────────────────────────────────────────────────────────────────
@@ -366,18 +403,54 @@ const ScoreTask = () => {
                                   <StatusBadge grade={grade} />
                                 </TableCell>
                                 <TableCell className="text-center">
-                                  <div className="flex gap-2 justify-center items-center">
-                                    <Button className="bg-blue-500 hover:bg-blue-500/70 cursor-pointer h-7 w-7 p-0">
-                                      <FilePenLine size={13} />
-                                    </Button>
+                                  <div className="flex justify-center items-center">
+                                    {/* Edit Button */}
                                     <Button
-                                      className="bg-red-500 hover:bg-red-500/70 cursor-pointer h-7 w-7 p-0"
-                                      onClick={() =>
-                                        handleDelete(item.score_id)
-                                      }
+                                      variant="ghost"
+                                      className="bg-transparent text-blue-500 hover:bg-blue-50 hover:text-blue-600 cursor-pointer h-8 w-8 p-0"
+                                      onClick={() => handleEditClick(item)}
                                     >
-                                      <Trash2 size={13} />
+                                      <FilePenLine size={18} />
                                     </Button>
+
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        {/* Delete Button */}
+                                        <Button
+                                          variant="ghost"
+                                          className="bg-transparent text-red-500 hover:bg-red-50 hover:text-red-600 cursor-pointer h-8 w-8 p-0"
+                                        >
+                                          <Trash2 size={18} />
+                                        </Button>
+                                      </AlertDialogTrigger>
+
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>
+                                            Are you sure?
+                                          </AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            This action cannot be undone. This
+                                            will permanently delete this score.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>
+                                            Cancel
+                                          </AlertDialogCancel>
+
+                                          <AlertDialogAction
+                                            onClick={() =>
+                                              handleDelete(item.score_id)
+                                            }
+                                            className="bg-red-500 hover:bg-red-600 text-white"
+                                          >
+                                            Delete
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
                                   </div>
                                 </TableCell>
                               </TableRow>
@@ -396,18 +469,21 @@ const ScoreTask = () => {
                       </TableBody>
                     </Table>
                   </div>
-                  <Dialog>
+                  <Dialog open={openDialog} onOpenChange={setOpenDialog}>
                     <DialogTrigger asChild>
                       <Button
                         className="flex items-center justify-start text-muted-foreground mx-auto mt-2 text-center text-sm font-semibold w-full cursor-pointer"
                         variant="ghost"
+                        onClick={handleAddClick}
                       >
                         <Plus className="h-5 w-5" />
                         Add new scores
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[425px]">
-                      <DialogTitle>Create Score</DialogTitle>
+                      <DialogTitle>
+                        {dialogMode === 'edit' ? 'Edit Score' : 'Create Score'}
+                      </DialogTitle>
                       <DialogDescription>
                         Create your score here. Click save when you&apos;re
                         done.

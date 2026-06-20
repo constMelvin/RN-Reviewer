@@ -3,11 +3,11 @@
 	"module": "index.ts",
 	"scripts": {
 		"dev:client": "bun run --cwd ./client dev",
-		"dev:server": "bun --env-file=./server/.env run --watch ./server/src/index.ts",
+		"dev:server": "bun --env-file=.env run --watch ./server/src/server.ts",
 		"dev": "concurrently \"bun run dev:client\" \"bun run dev:server\"",
 		"build:client": "bun run --cwd ./client build",
 		"build": "bun run build:client && bun run build:server",
-		"start": "bun --env-file=./server/.env run ./server/src/index.ts",
+		"start": "bun --env-file=.env run ./server/src/server.ts",
 		"prod": "bun run build:client && bun run start"
 	},
 	"devDependencies": {

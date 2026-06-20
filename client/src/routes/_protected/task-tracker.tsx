@@ -1,4 +1,4 @@
-import TaskTracker from '@/components/task-tracker'
+import TaskTracker from '@/components/pages/task-tracker'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_protected/task-tracker')({

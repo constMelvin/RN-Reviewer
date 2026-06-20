@@ -16,20 +16,25 @@ type UInput = {
   status: string | null
 }
 
+type UDetailsInput = {
+  subtopic_id: string
+  topics?: string
+  deadline?: string
+  links?: string
+}
+
+type DInput = {
+  subtopic_id: string
+}
+
 export function useCreateSubTopics() {
   const queryClient = useQueryClient()
 
   return useMutation<TResponse, Error, TInput>({
     mutationFn: async (topics: TInput) => {
       try {
-        // const res = await client.api.v1['sub-topics'][
-        //   'create-sub-topics'
-        // ].$post({ json: topics })
-
-        // return await res.json()
-
-        const res = await api.post("/v1/sub-topics", topics);
-        return res.data;
+        const res = await api.post('/v1/sub-topics/create-sub-topics', topics)
+        return res.data
       } catch (error: any) {
         throw error.response?.data?.message || 'Something went wrong'
       }
@@ -44,16 +49,11 @@ export function useUpdateSubTopics() {
   return useMutation<TResponse, Error, UInput>({
     mutationFn: async (updateStatus: UInput) => {
       try {
-        // const res = await client.api.v1['sub-topics'][
-        //   'update-sub-topics'
-        // ].$patch({
-        //   json: updateStatus,
-        // })
-
-        // return await res.json()
-
-        const { data } = await api.patch("/v1/sub-topics", updateStatus);
-        return data;
+        const { data } = await api.patch(
+          '/v1/sub-topics/update-sub-topics',
+          updateStatus,
+        )
+        return data
       } catch (error: any) {
         throw error.response?.data?.message || 'Something went wrong'
       }
@@ -61,3 +61,41 @@ export function useUpdateSubTopics() {
     onSettled: () => queryClient.invalidateQueries({ queryKey: BOOKS_KEY }),
   })
 }
+
+export function useUpdateSubTopicsDetails() {
+  const queryClient = useQueryClient()
+
+  return useMutation<TResponse, Error, UDetailsInput>({
+    mutationFn: async (input: UDetailsInput) => {
+      try {
+        const { data } = await api.patch(
+          '/v1/sub-topics/update-sub-topics-details',
+          input,
+        )
+        return data
+      } catch (error: any) {
+        throw error.response?.data?.message || 'Something went wrong'
+      }
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: BOOKS_KEY }),
+  })
+}
+
+export function useDeleteSubTopics() {
+  const queryClient = useQueryClient()
+
+  return useMutation<TResponse, Error, DInput>({
+    mutationFn: async (input: DInput) => {
+      try {
+        const { data } = await api.delete('/v1/sub-topics/delete-sub-topics', {
+          data: input,
+        })
+        return data
+      } catch (error: any) {
+        throw error.response?.data?.message || 'Something went wrong'
+      }
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: BOOKS_KEY }),
+  })
+}
+

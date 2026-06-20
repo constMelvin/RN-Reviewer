@@ -1,4 +1,4 @@
-import ScoreTask from '@/components/score-task'
+import ScoreTask from '@/components/pages/score-task'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_protected/score-task')({

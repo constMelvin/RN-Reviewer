@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
-import { Logo } from '@/components/logo'
-import { Label } from './ui/label'
+import { Logo } from '@/components/pages/logo'
+import { Label } from '../ui/label'
 import { useEffect, useState } from 'react'
 import { CheckIcon, EyeIcon, EyeOffIcon, LoaderIcon, XIcon } from 'lucide-react'
 import { Link } from '@tanstack/react-router'

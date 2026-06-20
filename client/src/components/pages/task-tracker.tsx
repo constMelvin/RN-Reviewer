@@ -25,7 +25,21 @@ import {
   Check,
   AlertTriangle,
   SkipForward,
+  Pencil,
+  Trash2,
+  Settings,
 } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -44,35 +58,29 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
-import { Label } from '@/components/ui/label'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { FcCalendar } from 'react-icons/fc'
-import { Calendar } from '@/components/ui/calendar'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { format, differenceInDays } from 'date-fns'
-import { Card, CardContent, CardTitle } from './ui/card'
-import { TextLoop } from './ui/text-loop'
-import { SlidingNumber } from './ui/slider-number'
-import { useCreateTasks, useTasks, useUpdateTasks } from '@/hooks/use-task'
+import { Card, CardContent, CardTitle } from '../ui/card'
+import { TextLoop } from '../ui/text-loop'
+import { SlidingNumber } from '../ui/slider-number'
+import {
+  useCreateTasks,
+  useDeleteTask,
+  useTasks,
+  useUpdateTasks,
+} from '@/hooks/use-task'
 import type { Task } from '@/@types/task'
 import { useAuthStore } from '@/store/authStore'
 import { Progress } from '@/components/ui/progress'
+import { TaskDialog } from '../TaskDialog'
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -159,6 +167,23 @@ const Quotes = [
   "Dream big, work hard, stay focused, and surround yourself with good energy. That's the PNLE mindset.",
   "It always seems impossible until it's done. – Nelson Mandela",
 ]
+const getHref = (link: string) => {
+  if (!link) return '#'
+  let url =
+    link.startsWith('http://') || link.startsWith('https://')
+      ? link
+      : `https://${link}`
+  try {
+    const parsed = new URL(url)
+    if (!parsed.hostname.includes('.')) {
+      parsed.hostname += '.com'
+      url = parsed.toString()
+    }
+  } catch {
+    if (!url.includes('.')) url += '.com'
+  }
+  return url
+}
 
 // ─── columns ─────────────────────────────────────────────────────────────────
 
@@ -180,7 +205,10 @@ export const columns: ColumnDef<Task>[] = [
             onCheckedChange={(value) => {
               updateTask.mutate({
                 task_id: row.original.task_id,
+                task_type: row.original.task_type as Task['task_type'],
                 task_name: row.original.task_name,
+                task_date: row.original.task_date,
+                task_link: row.original.task_link,
                 task_isComplete: value === true,
               })
             }}
@@ -286,7 +314,7 @@ export const columns: ColumnDef<Task>[] = [
     ),
     cell: ({ row }) => (
       <a
-        href={row.getValue('task_link')}
+        href={getHref(row.getValue('task_link'))}
         target="_blank"
         rel="noopener noreferrer"
         className="hover:underline hover:text-blue-500 text-blue-400 text-sm truncate max-w-[160px] block"
@@ -294,6 +322,71 @@ export const columns: ColumnDef<Task>[] = [
         {row.getValue('task_link')}
       </a>
     ),
+  },
+  {
+    id: 'actions',
+    header: () => (
+      <div className="flex gap-1 items-center">
+        <Settings size={16} /> Actions
+      </div>
+    ),
+    cell: ({ row, table }) => {
+      const task = row.original
+      const meta = table.options.meta as any
+      const deleteTask = useDeleteTask()
+      return (
+        <div className="flex">
+          {/* Edit Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="cursor-pointer bg-transparent text-blue-500 hover:bg-blue-50 hover:text-blue-600"
+            onClick={() => {
+              // Use meta to trigger the dialog states
+              meta?.setDialogMode('edit')
+              meta?.setSelectedTask(task)
+              meta?.setOpenTaskDialog(true)
+            }}
+          >
+            <Pencil size={18} />
+          </Button>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              {/* Delete Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="cursor-pointer bg-transparent text-red-500 hover:bg-red-50 hover:text-red-600"
+              >
+                <Trash2 size={18} />
+              </Button>
+            </AlertDialogTrigger>
+
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Task?</AlertDialogTitle>
+
+                <AlertDialogDescription>
+                  This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                <AlertDialogAction
+                  className="bg-red-500 hover:bg-red-600 text-white"
+                  onClick={() => deleteTask.mutate(task.task_id)}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      )
+    },
   },
 ]
 
@@ -388,15 +481,13 @@ const TaskTracker = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
-  const [date, setDate] = useState<Date | undefined>(undefined)
   const [timer, setTimer] = useState({ seconds: 0, minutes: 0 })
-  const [newTask, setNewTask] = useState({
-    task_name: '',
-    task_link: '',
-    task_type: 'Lecture',
-    task_date: '',
-  })
   const intervalRef = useRef<number | null>(null)
+
+  const updateTask = useUpdateTasks()
+  const [openTaskDialog, setOpenTaskDialog] = useState(false)
+  const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create')
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
 
   const table = useReactTable({
     data: filteredRows,
@@ -411,6 +502,11 @@ const TaskTracker = () => {
     onRowSelectionChange: setRowSelection,
     getRowId: (row) => row.task_id,
     state: { sorting, columnFilters, columnVisibility, rowSelection },
+    meta: {
+      setDialogMode,
+      setSelectedTask,
+      setOpenTaskDialog,
+    },
   })
 
   const handleStartTimer = () => {
@@ -456,23 +552,26 @@ const TaskTracker = () => {
     handleSelectSession(next)
   }
 
-  const handleReset = (e: React.MouseEvent<HTMLElement>) => {
-    e.preventDefault()
-    setDate(undefined)
-  }
-
-  const handleSubmit = async () => {
-    createTask.mutate({
-      ...newTask,
-      task_date: date ? format(date, 'MMMM d, yyyy') : '',
-    })
-    setNewTask({
-      task_name: '',
-      task_link: '',
-      task_type: 'Lecture',
-      task_date: '',
-    })
-    setDate(undefined)
+  const handleDialogSubmit = (data: {
+    task_name: string
+    task_link: string
+    task_type: Task['task_type']
+    task_date: string
+    task_isComplete: boolean
+  }) => {
+    if (dialogMode === 'create') {
+      createTask.mutate(data)
+    } else if (dialogMode === 'edit' && selectedTask) {
+      updateTask.mutate({
+        task_id: selectedTask.task_id,
+        task_name: data.task_name,
+        task_type: data.task_type,
+        task_date: data.task_date,
+        task_link: data.task_link,
+        task_isComplete: selectedTask.task_isComplete,
+      })
+    }
+    setOpenTaskDialog(false)
   }
 
   // User initials for avatar (NEW)
@@ -683,151 +782,27 @@ const TaskTracker = () => {
             {/* Add new task */}
             <div className="flex items-center justify-end space-x-2 py-4 px-2">
               <div className="flex-1 text-sm text-muted-foreground">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="ghost" className="cursor-pointer">
-                      <Plus /> new table row...
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                      <DialogTitle>Create Task</DialogTitle>
-                      <DialogDescription>
-                        Create your task here. Click save when you&apos;re done.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4">
-                      <div className="grid gap-3">
-                        <Label htmlFor="name-1">Name:</Label>
-                        <Input
-                          id="name-1"
-                          name="name"
-                          required
-                          placeholder="Enter name"
-                          value={newTask.task_name}
-                          onChange={(e) =>
-                            setNewTask((prev) => ({
-                              ...prev,
-                              task_name: e.target.value,
-                            }))
-                          }
-                        />
-                      </div>
-                      <div className="grid gap-3">
-                        <Label htmlFor="link">Link:</Label>
-                        <Input
-                          id="link"
-                          required
-                          name="link"
-                          placeholder="Input link or copy link here..."
-                          value={newTask.task_link}
-                          onChange={(e) =>
-                            setNewTask((prev) => ({
-                              ...prev,
-                              task_link: e.target.value,
-                            }))
-                          }
-                        />
-                      </div>
-                      <div className="flex gap-3">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger
-                            className="flex justify-start w-fit cursor-pointer"
-                            asChild
-                          >
-                            <Button variant="outline">
-                              Selected type: {newTask.task_type}
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <RadioGroup
-                              defaultValue={newTask.task_type}
-                              onValueChange={(value) =>
-                                setNewTask((prev) => ({
-                                  ...prev,
-                                  task_type: value,
-                                }))
-                              }
-                              className="flex items-center gap-3"
-                            >
-                              {radioOptions.map((opt) => (
-                                <div
-                                  key={opt.value}
-                                  className="flex items-center space-x-2 cursor-pointer"
-                                >
-                                  <RadioGroupItem
-                                    value={opt.value}
-                                    id={opt.value}
-                                    className={opt.className}
-                                  />
-                                  <Label htmlFor={opt.value}>{opt.label}</Label>
-                                </div>
-                              ))}
-                            </RadioGroup>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                      <div className="flex gap-3">
-                        <Label htmlFor="name-1">Select Date:</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <div className="relative w-[250px]">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                className="w-full cursor-pointer"
-                              >
-                                <CalendarIcon />
-                                {date ? (
-                                  format(date, 'MMMM dd, yyyy')
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                              </Button>
-                              {date && (
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className="absolute top-1/2 -end-0 -translate-y-1/2"
-                                  onClick={handleReset}
-                                >
-                                  <X />
-                                </Button>
-                              )}
-                            </div>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={date}
-                              onSelect={setDate}
-                              autoFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <DialogClose asChild>
-                        <Button
-                          variant="outline"
-                          className="cursor-pointer hover:bg-red-600"
-                        >
-                          Cancel
-                        </Button>
-                      </DialogClose>
-                      <Button
-                        className="bg-yellow-400 hover:bg-yellow-400/90 cursor-pointer"
-                        onClick={handleSubmit}
-                      >
-                        Save changes
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+                <Button
+                  variant="ghost"
+                  className="cursor-pointer"
+                  onClick={() => {
+                    setDialogMode('create')
+                    setSelectedTask(null)
+                    setOpenTaskDialog(true)
+                  }}
+                >
+                  <Plus /> new table row...
+                </Button>
               </div>
             </div>
+
+            <TaskDialog
+              open={openTaskDialog}
+              onOpenChange={setOpenTaskDialog}
+              mode={dialogMode}
+              initialData={selectedTask}
+              onSubmit={handleDialogSubmit}
+            />
           </div>
 
           {/* ── Improved timer (NEW) ── */}
@@ -997,7 +972,7 @@ const TaskTracker = () => {
             // style={{ height: '410px' }}
           >
             <img
-              src="https://imgs.search.brave.com/EDC_TCNLdqZ56Nvw7XVuBhmTS0REwppCr9bHWTvqtDQ/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/dmVjdG9yc3RvY2su/Y29tL2kvcHJldmll/dy0xeC83NS85NS9k/ZWZhdWx0LXBsYWNl/aG9sZGVyLWJ1c2lu/ZXNzd29tYW4taGFs/Zi1sZW5ndGgtcG9y/LXZlY3Rvci0yMDg0/NzU5NS5qcGc"
+              src="https://i.pinimg.com/webp/736x/8f/bc/38/8fbc383992a1380be7c06cb99a0d675c.webp"
               alt="profile"
               className="absolute inset-0 h-full w-full object-fit object-center"
             />

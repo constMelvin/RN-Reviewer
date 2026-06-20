@@ -1,35 +1,36 @@
 import type {
-	CreateTaskArgs,
-	GetTaskArgs,
-	UpdateTaskArgs,
+  CreateTaskArgs,
+  GetTaskArgs,
+  UpdateTaskArgs,
+  DeleteTaskArgs,
 } from "@/controllers/tasks/dto/tasks.dto";
 import { task } from "@/db/schema";
 import { and, eq, ne } from "drizzle-orm";
 
 export const TaskData = {
-	createTask: async ({ dbClient, values }: CreateTaskArgs) => {
-		const taskCreated = await dbClient
-			.insert(task)
-			.values(values)
-			.returning();
+  createTask: async ({ dbClient, values }: CreateTaskArgs) => {
+    const taskCreated = await dbClient.insert(task).values(values).returning();
 
-		return taskCreated;
-	},
-	getTaskByUser: async ({ userId, dbClient }: GetTaskArgs) => {
-		const tasks = await dbClient
-			.select()
-			.from(task)
-			.where(and(eq(task.user_id, userId)));
+    return taskCreated;
+  },
+  getTaskByUser: async ({ userId, dbClient }: GetTaskArgs) => {
+    const tasks = await dbClient
+      .select()
+      .from(task)
+      .where(and(eq(task.user_id, userId)));
 
-		return tasks;
-	},
-	updateTask: async ({ dbClient, task_id, values }: UpdateTaskArgs) => {
-		const updatedData = await dbClient
-			.update(task)
-			.set(values)
-			.where(eq(task.task_id, task_id))
-			.returning();
+    return tasks;
+  },
+  updateTask: async ({ dbClient, task_id, values }: UpdateTaskArgs) => {
+    const updatedData = await dbClient
+      .update(task)
+      .set(values)
+      .where(eq(task.task_id, task_id))
+      .returning();
 
-		return updatedData;
-	},
+    return updatedData;
+  },
+  deleteTask: async ({ dbClient, task_id }: DeleteTaskArgs) => {
+    await dbClient.delete(task).where(eq(task.task_id, task_id));
+  },
 };

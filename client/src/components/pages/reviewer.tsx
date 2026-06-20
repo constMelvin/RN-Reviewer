@@ -1,11 +1,13 @@
 import { Card } from '@/components/ui/card'
 import {
   AlertDialog,
-  AlertDialogClose,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogPopup,
   AlertDialogTitle,
+  AlertDialogDescription,
 } from '@/components/ui/alert-dialog'
 import {
   Table,
@@ -26,7 +28,6 @@ import { Checkbox } from '@/components/ui/checkbox'
 import {
   BookOpen,
   BookOpenCheck,
-  CalendarIcon,
   Check,
   ChevronDown,
   ChevronRight,
@@ -35,6 +36,8 @@ import {
   LoaderIcon,
   Search,
   X,
+  Pencil,
+  Trash,
 } from 'lucide-react'
 import React, { useMemo, useState, type ChangeEvent } from 'react'
 
@@ -71,16 +74,7 @@ import {
   SelectLabel,
   SelectTrigger,
 } from '@/components/ui/select'
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
+
 import { format, differenceInDays } from 'date-fns'
 import { Calendar } from '@/components/ui/calendar'
 import { Progress } from '@/components/ui/progress'
@@ -89,9 +83,10 @@ import { FcBarChart, FcCalendar, FcDocument, FcOk } from 'react-icons/fc'
 import { useBooks, useCreateBook } from '@/hooks/use-book'
 import type { BookSubTopics, BookTopics } from '@/@types/books'
 import type { ExpandedState } from '@tanstack/react-table'
-import { useCreateTopics } from '@/hooks/use-topics'
-import { useCreateSubTopics, useUpdateSubTopics } from '@/hooks/use-sub-topics'
+import { useCreateTopics, useUpdateTopics, useDeleteTopics } from '@/hooks/use-topics'
+import { useCreateSubTopics, useUpdateSubTopics, useUpdateSubTopicsDetails, useDeleteSubTopics } from '@/hooks/use-sub-topics'
 import { sileo } from 'sileo'
+import { TopicFormDialog, type TopicFormData } from '@/components/topic-form-dialog'
 
 export type Data = BookTopics & {
   subtopics?: BookSubTopics[]
@@ -121,8 +116,12 @@ const Reviewer = () => {
   const createBook = useCreateBook()
   const { data: book } = useBooks()
   const createTopic = useCreateTopics()
+  const updateTopic = useUpdateTopics()
+  const deleteTopic = useDeleteTopics()
   const createSubTopic = useCreateSubTopics()
   const updateSubTopic = useUpdateSubTopics()
+  const updateSubTopicDetails = useUpdateSubTopicsDetails()
+  const deleteSubTopic = useDeleteSubTopics()
 
   // ── NEW: active NP tab & search ──────────────────────────────────────────
   const moduleArr = ['NP1', 'NP2', 'NP3', 'NP4', 'NP5']
@@ -197,18 +196,9 @@ const Reviewer = () => {
     return url
   }
 
-  const [topics, setTopics] = useState({
-    book_id: '',
-    topics: '',
-    links: '',
-    deadline: '',
-  })
-  const [subTopics, setSubTopics] = useState({
-    topics: '',
-    topic_id: '',
-    links: '',
-    deadline: '',
-  })
+  const [topicDialog, setTopicDialog] = useState<{ open: boolean; mode: 'create' | 'edit'; data?: any; book_id?: string }>({ open: false, mode: 'create' })
+  const [subtopicDialog, setSubtopicDialog] = useState<{ open: boolean; mode: 'create' | 'edit'; data?: any; topic_id?: string }>({ open: false, mode: 'create' })
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; type: 'topic' | 'subtopic'; id: string }>({ open: false, type: 'topic', id: '' })
   const [updateSubTopics, setUpdateSubTopics] = useState({
     subtopic_id: '',
     status: '',
@@ -505,6 +495,51 @@ const Reviewer = () => {
         )
       },
     },
+    {
+      id: 'actions',
+      size: 80,
+      header: () => (
+        <div className="flex items-center gap-1">
+          Actions
+        </div>
+      ),
+      cell: ({ row }) => {
+        const isSubtopic = 'subtopic_id' in row.original
+
+        return (
+          <div className="flex items-center gap-3">
+            <button
+              className="text-blue-500 hover:text-blue-600 transition-colors"
+              title="Edit"
+              onClick={(e) => {
+                e.stopPropagation()
+                if (isSubtopic) {
+                  setSubtopicDialog({ open: true, mode: 'edit', data: row.original })
+                } else {
+                  setTopicDialog({ open: true, mode: 'edit', data: row.original })
+                }
+              }}
+            >
+              <Pencil size={16} />
+            </button>
+            <button
+              className="text-red-500 hover:text-red-600 transition-colors"
+              title="Delete"
+              onClick={(e) => {
+                e.stopPropagation()
+                if (isSubtopic) {
+                  setDeleteConfirm({ open: true, type: 'subtopic', id: (row.original as any).subtopic_id })
+                } else {
+                  setDeleteConfirm({ open: true, type: 'topic', id: (row.original as any).topic_id })
+                }
+              }}
+            >
+              <Trash size={16} />
+            </button>
+          </div>
+        )
+      },
+    },
   ]
 
   // ── BookTable ─────────────────────────────────────────────────────────────
@@ -623,48 +658,81 @@ const Reviewer = () => {
     setDate(undefined)
   }
 
-  const handleSubmitTopics = (e: React.MouseEvent<HTMLElement>) => {
-    e.preventDefault()
-
-    if (!topics.topics || !topics.deadline || !topics.links) {
-      sileo.error({
-        description: 'Failed to add topic. Please complete all fields',
-      })
+  const handleTopicSubmit = (data: TopicFormData) => {
+    if (!data.topics || !data.deadline || !data.links) {
+      sileo.error({ description: 'Failed to save topic. Please complete all fields' })
       return
     }
 
-    createTopic.mutate(topics, {
-      onSuccess: () =>
-        sileo.success({
-          description: 'Topic added!',
-        }),
-      onError: () => sileo.error({ description: 'Failed to add topic.' }),
-    })
-    setDate(undefined)
-    setTopics({ topics: '', book_id: '', deadline: '', links: '' })
+    if (topicDialog.mode === 'edit') {
+      updateTopic.mutate(
+        { topic_id: topicDialog.data?.topic_id, ...data },
+        {
+          onSuccess: () => {
+            sileo.success({ description: 'Topic updated!' })
+            setTopicDialog({ ...topicDialog, open: false })
+          },
+          onError: () => sileo.error({ description: 'Failed to update topic.' }),
+        }
+      )
+    } else {
+      createTopic.mutate({ ...data, book_id: topicDialog.book_id! }, {
+        onSuccess: () => {
+          sileo.success({ description: 'Topic added!' })
+          setTopicDialog({ ...topicDialog, open: false })
+        },
+        onError: () => sileo.error({ description: 'Failed to add topic.' }),
+      })
+    }
   }
 
-  const handleSubmitSubTopics = (e: React.MouseEvent<HTMLElement>) => {
-    e.preventDefault()
-
-    if (!subTopics.topics || !subTopics.deadline || !subTopics.links) {
-      sileo.error({
-        description: 'Failed to add sub topic. Please complete all fields',
-      })
+  const handleSubtopicSubmit = (data: TopicFormData) => {
+    if (!data.topics || !data.deadline || !data.links) {
+      sileo.error({ description: 'Failed to save subtopic. Please complete all fields' })
       return
     }
-    createSubTopic.mutate(subTopics, {
-      onSuccess: () =>
-        sileo.success({
-          description: 'Subtopic added!',
-        }),
-      onError: () =>
-        sileo.error({
-          description: 'Failed to add subtopic.',
-        }),
-    })
-    setDate(undefined)
-    setSubTopics({ topics: '', topic_id: '', links: '', deadline: '' })
+
+    if (subtopicDialog.mode === 'edit') {
+      updateSubTopicDetails.mutate(
+        { subtopic_id: subtopicDialog.data?.subtopic_id, ...data },
+        {
+          onSuccess: () => {
+            sileo.success({ description: 'Subtopic updated!' })
+            setSubtopicDialog({ ...subtopicDialog, open: false })
+          },
+          onError: () => sileo.error({ description: 'Failed to update subtopic.' }),
+        }
+      )
+    } else {
+      createSubTopic.mutate({ ...data, topic_id: subtopicDialog.topic_id! }, {
+        onSuccess: () => {
+          sileo.success({ description: 'Subtopic added!' })
+          setSubtopicDialog({ ...subtopicDialog, open: false })
+        },
+        onError: () => sileo.error({ description: 'Failed to add subtopic.' }),
+      })
+    }
+  }
+
+  const handleConfirmDelete = () => {
+    if (deleteConfirm.type === 'topic') {
+      deleteTopic.mutate(
+        { topic_id: deleteConfirm.id },
+        {
+          onSuccess: () => sileo.success({ description: 'Topic deleted!' }),
+          onError: () => sileo.error({ description: 'Failed to delete topic.' }),
+        }
+      )
+    } else {
+      deleteSubTopic.mutate(
+        { subtopic_id: deleteConfirm.id },
+        {
+          onSuccess: () => sileo.success({ description: 'Subtopic deleted!' }),
+          onError: () => sileo.error({ description: 'Failed to delete subtopic.' }),
+        }
+      )
+    }
+    setDeleteConfirm({ ...deleteConfirm, open: false })
   }
 
   const handleUpdateStatus = (e: React.MouseEvent<HTMLElement>) => {
@@ -766,104 +834,15 @@ const Reviewer = () => {
           <div className="border-t border-yellow-200 pt-3 flex flex-col gap-2">
             {/* Add Topics button */}
             {activeBook && (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full text-yellow-700 hover:text-yellow-700/90 hover:bg-yellow-50 bg-yellow-100 cursor-pointer border border-dashed border-yellow-300"
-                    onClick={() =>
-                      setTopics((prev) => ({
-                        ...prev,
-                        book_id: activeBook.book_id,
-                      }))
-                    }
-                  >
-                    + Add Topic
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-[95vw] sm:max-w-lg">
-                  <DialogHeader>
-                    <DialogTitle>Add New Topic</DialogTitle>
-                    <DialogDescription>
-                      Create a new topic for {activeBook.book_title}.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <Label>
-                    Topics <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    placeholder="Enter topic..."
-                    value={topics.topics}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                      setTopics((prev) => ({ ...prev, topics: e.target.value }))
-                    }
-                  />
-                  <Label>Links</Label>
-                  <Input
-                    placeholder="Enter link..."
-                    value={topics.links}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                      setTopics((prev) => ({ ...prev, links: e.target.value }))
-                    }
-                  />
-                  <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-                    <Label>Deadline:</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <div className="relative w-full sm:w-[200px]">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="w-full justify-start cursor-pointer"
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {date
-                              ? format(date, 'MMMM dd, yyyy')
-                              : 'Pick a date'}
-                          </Button>
-                          {date && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="absolute top-1/2 right-0 -translate-y-1/2"
-                              onClick={handleResetDate}
-                            >
-                              <X />
-                            </Button>
-                          )}
-                        </div>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={date}
-                          onSelect={(d) => {
-                            setDate(d)
-                            if (d)
-                              setTopics((prev) => ({
-                                ...prev,
-                                deadline: format(d, 'MMMM d, yyyy'),
-                              }))
-                          }}
-                          autoFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <DialogFooter>
-                    <DialogClose asChild>
-                      <Button variant="outline">Cancel</Button>
-                    </DialogClose>
-                    <Button
-                      className="bg-yellow-300 hover:bg-yellow-300/80 cursor-pointer"
-                      onClick={handleSubmitTopics}
-                    >
-                      Add Topic
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+              <Button
+                variant="ghost"
+                className="w-full text-yellow-700 hover:text-yellow-700/90 hover:bg-yellow-50 bg-yellow-100 cursor-pointer border border-dashed border-yellow-300"
+                onClick={() =>
+                  setTopicDialog({ open: true, mode: 'create', book_id: activeBook.book_id })
+                }
+              >
+                + Add Topic
+              </Button>
             )}
 
             {/* Add Books */}
@@ -990,123 +969,17 @@ const Reviewer = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         {activeBook.topics?.map((row: any) => (
-                          <Sheet key={row.topic_id}>
-                            <SheetTrigger asChild>
-                              <DropdownMenuItem
-                                className="flex bg-yellow-200 text-yellow-700 hover:bg-yellow-200/80 cursor-pointer mb-1 font-medium"
-                                onSelect={(e) => e.preventDefault()}
-                                onClick={() =>
-                                  setSubTopics((prev) => ({
-                                    ...prev,
-                                    topic_id: row.topic_id,
-                                  }))
-                                }
-                              >
-                                <BookOpen className="w-4 h-4 text-yellow-600 mr-2" />
-                                {row.topics}
-                              </DropdownMenuItem>
-                            </SheetTrigger>
-                            <SheetContent className="w-full sm:max-w-md">
-                              <SheetHeader>
-                                <SheetTitle>Add Subtopic</SheetTitle>
-                                <SheetDescription>
-                                  Under: {row.topics}
-                                </SheetDescription>
-                              </SheetHeader>
-                              <div className="grid flex-1 auto-rows-min gap-6 px-4">
-                                <div className="grid gap-3">
-                                  <Label>Subtopic</Label>
-                                  <Input
-                                    placeholder="Enter subtopic..."
-                                    onChange={(
-                                      e: ChangeEvent<HTMLInputElement>,
-                                    ) =>
-                                      setSubTopics({
-                                        ...subTopics,
-                                        topics: e.target.value,
-                                      })
-                                    }
-                                  />
-                                </div>
-                                <div className="grid gap-3">
-                                  <Label>Links</Label>
-                                  <Input
-                                    placeholder="Enter link..."
-                                    onChange={(
-                                      e: ChangeEvent<HTMLInputElement>,
-                                    ) =>
-                                      setSubTopics({
-                                        ...subTopics,
-                                        links: e.target.value,
-                                      })
-                                    }
-                                  />
-                                </div>
-                                <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-                                  <Label>Deadline:</Label>
-                                  <Popover>
-                                    <PopoverTrigger asChild>
-                                      <div className="relative w-full sm:w-[200px]">
-                                        <Button
-                                          type="button"
-                                          variant="outline"
-                                          className="w-full justify-start"
-                                        >
-                                          <CalendarIcon className="mr-2 h-4 w-4" />
-                                          {date
-                                            ? format(date, 'MMMM dd, yyyy')
-                                            : 'Pick a date'}
-                                        </Button>
-                                        {date && (
-                                          <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            className="absolute top-1/2 right-0 -translate-y-1/2"
-                                            onClick={handleResetDate}
-                                          >
-                                            <X />
-                                          </Button>
-                                        )}
-                                      </div>
-                                    </PopoverTrigger>
-                                    <PopoverContent
-                                      className="w-auto p-0"
-                                      align="start"
-                                    >
-                                      <Calendar
-                                        mode="single"
-                                        selected={date}
-                                        onSelect={(d) => {
-                                          setDate(d)
-                                          if (d)
-                                            setSubTopics({
-                                              ...subTopics,
-                                              deadline: format(
-                                                d,
-                                                'MMMM d, yyyy',
-                                              ),
-                                            })
-                                        }}
-                                        autoFocus
-                                      />
-                                    </PopoverContent>
-                                  </Popover>
-                                </div>
-                              </div>
-                              <SheetFooter>
-                                <Button
-                                  className="bg-yellow-300 cursor-pointer hover:bg-yellow-300/80"
-                                  onClick={handleSubmitSubTopics}
-                                >
-                                  Save Subtopic
-                                </Button>
-                                <SheetClose asChild>
-                                  <Button variant="outline">Close</Button>
-                                </SheetClose>
-                              </SheetFooter>
-                            </SheetContent>
-                          </Sheet>
+                          <DropdownMenuItem
+                            key={row.topic_id}
+                            className="flex bg-yellow-200 text-yellow-700 hover:bg-yellow-200/80 cursor-pointer mb-1 font-medium"
+                            onSelect={(e) => {
+                              e.preventDefault()
+                              setSubtopicDialog({ open: true, mode: 'create', topic_id: row.topic_id })
+                            }}
+                          >
+                            <BookOpen className="w-4 h-4 text-yellow-600 mr-2" />
+                            {row.topics}
+                          </DropdownMenuItem>
                         ))}
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -1144,7 +1017,9 @@ const Reviewer = () => {
                       <div className="text-[10px] sm:text-xs text-yellow-700 flex items-center gap-1 mb-1">
                         {label}
                       </div>
-                      <div className={`text-base sm:text-xl font-semibold ${color}`}>
+                      <div
+                        className={`text-base sm:text-xl font-semibold ${color}`}
+                      >
                         {value}
                       </div>
                     </div>
@@ -1187,30 +1062,72 @@ const Reviewer = () => {
             </Card>
           )}
 
-          {/* Alert Dialog for status update */}
-          <AlertDialog open={openAlert} onOpenChange={setOpenAlert}>
-            <AlertDialogPopup>
+          {/* Topic Form Dialog */}
+          <TopicFormDialog
+            open={topicDialog.open}
+            onOpenChange={(open) => setTopicDialog({ ...topicDialog, open })}
+            title={topicDialog.mode === 'edit' ? 'Edit Topic' : 'Add New Topic'}
+            description={topicDialog.mode === 'edit' ? 'Update the details of the topic.' : `Create a new topic for ${activeBook?.book_title}.`}
+            initialData={topicDialog.data}
+            onSubmit={handleTopicSubmit}
+          />
+
+          {/* Subtopic Form Dialog */}
+          <TopicFormDialog
+            open={subtopicDialog.open}
+            onOpenChange={(open) => setSubtopicDialog({ ...subtopicDialog, open })}
+            title={subtopicDialog.mode === 'edit' ? 'Edit Subtopic' : 'Add Subtopic'}
+            description={subtopicDialog.mode === 'edit' ? 'Update the details of the subtopic.' : 'Create a new subtopic.'}
+            initialData={subtopicDialog.data}
+            onSubmit={handleSubtopicSubmit}
+            inputLabel="Subtopic"
+          />
+
+          {/* Delete Confirmation Dialog */}
+          <AlertDialog open={deleteConfirm.open} onOpenChange={(open) => setDeleteConfirm({ ...deleteConfirm, open })}>
+            <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Update status?</AlertDialogTitle>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently delete this {deleteConfirm.type === 'topic' ? 'topic and all its subtopics' : 'subtopic'}. This action cannot be undone.
+                </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogClose
-                  render={<Button variant="ghost" className="cursor-pointer" />}
+                <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleConfirmDelete}
+                  className="bg-red-500 hover:bg-red-600 text-white cursor-pointer"
                 >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          {/* Alert Dialog for status update */}
+          <AlertDialog open={openAlert} onOpenChange={setOpenAlert}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Update status?</AlertDialogTitle>
+
+                <AlertDialogDescription>
+                  This action will update the status of the selected record.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              <AlertDialogFooter>
+                <AlertDialogCancel className="cursor-pointer">
                   Cancel
-                </AlertDialogClose>
-                <AlertDialogClose
-                  render={
-                    <Button
-                      className="bg-yellow-300 cursor-pointer hover:bg-yellow-300/80"
-                      onClick={handleUpdateStatus}
-                    />
-                  }
+                </AlertDialogCancel>
+
+                <AlertDialogAction
+                  onClick={handleUpdateStatus}
+                  className="bg-yellow-300 hover:bg-yellow-300/80 text-black cursor-pointer"
                 >
                   Update Status
-                </AlertDialogClose>
+                </AlertDialogAction>
               </AlertDialogFooter>
-            </AlertDialogPopup>
+            </AlertDialogContent>
           </AlertDialog>
         </div>
       </div>

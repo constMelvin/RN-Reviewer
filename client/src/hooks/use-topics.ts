@@ -11,19 +11,56 @@ type TInput = {
   links: string
 }
 
+type UInput = {
+  topic_id: string
+  topics?: string
+  deadline?: string
+  links?: string
+}
+
+type DInput = {
+  topic_id: string
+}
+
 export function useCreateTopics() {
   const queryClient = useQueryClient()
 
   return useMutation<TResponse, Error, TInput>({
     mutationFn: async (topics: TInput) => {
       try {
-        // const res = await client.api.v1.topic['create-topics'].$post({
-        //   json: topics,
-        // })
-
-        // return await res.json()
-
         const { data } = await api.post("/v1/topic/create-topics", topics);
+        return data;
+      } catch (error: any) {
+        throw error.response?.data?.message || 'Something went wrong'
+      }
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: BOOKS_KEY }),
+  })
+}
+
+export function useUpdateTopics() {
+  const queryClient = useQueryClient()
+
+  return useMutation<TResponse, Error, UInput>({
+    mutationFn: async (input: UInput) => {
+      try {
+        const { data } = await api.patch("/v1/topic/update-topics", input);
+        return data;
+      } catch (error: any) {
+        throw error.response?.data?.message || 'Something went wrong'
+      }
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: BOOKS_KEY }),
+  })
+}
+
+export function useDeleteTopics() {
+  const queryClient = useQueryClient()
+
+  return useMutation<TResponse, Error, DInput>({
+    mutationFn: async (input: DInput) => {
+      try {
+        const { data } = await api.delete("/v1/topic/delete-topics", { data: input });
         return data;
       } catch (error: any) {
         throw error.response?.data?.message || 'Something went wrong'

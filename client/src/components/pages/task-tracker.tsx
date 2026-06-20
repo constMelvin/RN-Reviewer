@@ -339,6 +339,7 @@ export const columns: ColumnDef<Task>[] = [
           {/* Edit Button */}
           <Button
             variant="ghost"
+            disabled={task.task_isComplete}
             size="icon"
             className="cursor-pointer bg-transparent text-blue-500 hover:bg-blue-50 hover:text-blue-600"
             onClick={() => {
@@ -356,6 +357,7 @@ export const columns: ColumnDef<Task>[] = [
               {/* Delete Button */}
               <Button
                 variant="ghost"
+                disabled={task.task_isComplete}
                 size="icon"
                 className="cursor-pointer bg-transparent text-red-500 hover:bg-red-50 hover:text-red-600"
               >

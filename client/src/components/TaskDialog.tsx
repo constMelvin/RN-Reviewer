@@ -101,7 +101,7 @@ export function TaskDialog({
   const handleSubmit = () => {
     onSubmit({
       ...form,
-      task_date: date ? format(date, 'MMMM d, yyyy') : '',
+      task_date: date ? format(date, 'MMMM d, yyyy') : initialData?.task_date!,
     })
   }
 

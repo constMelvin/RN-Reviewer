@@ -24,8 +24,21 @@ export const UpdateSubTopicSchema = z.object({
 	status: z.string().nullable()
 });
 
+export const UpdateSubTopicDetailsSchema = z.object({
+	subtopic_id: z.string().uuid(),
+	topics: z.string().min(1).optional(),
+	deadline: z.string().min(1).optional(),
+	links: z.string().optional(),
+});
+
+export const DeleteSubTopicSchema = z.object({
+	subtopic_id: z.string().uuid(),
+});
+
 type SupTopic = InferSelectModel<typeof book_subtopics>;
 
 export type UpdateSubTopicStatus = Pick<SupTopic, "status" | "subtopic_id">;
-
 export type CreateSubTopicsInput = z.infer<typeof CreateSubTopicsSchema>;
+export type UpdateSubTopicDetailsInput = z.infer<typeof UpdateSubTopicDetailsSchema>;
+export type DeleteSubTopicInput = z.infer<typeof DeleteSubTopicSchema>;
+

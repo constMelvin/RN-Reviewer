@@ -15,6 +15,21 @@ export type UpdateSubTopicsArgs = {
 	};
 };
 
+export type UpdateSubTopicDetailsArgs = {
+	dbClient: DbClient;
+	values: {
+		subtopic_id: string;
+		topics?: string;
+		deadline?: string;
+		links?: string;
+	};
+};
+
+export type DeleteSubTopicArgs = {
+	dbClient: DbClient;
+	subtopic_id: string;
+};
+
 export const SubTopicsData = {
 	createSubTopic: async ({ dbClient, values }: CreateSubTopicsArgs) => {
 		const newSubtopic = await dbClient
@@ -52,4 +67,22 @@ export const SubTopicsData = {
 			.where(eq(book_topics.topic_id, updatedSubTopic[0].topic_id));
 		return updatedSubTopic;
 	},
+	updateSubTopicDetails: async ({
+		dbClient,
+		values,
+	}: UpdateSubTopicDetailsArgs) => {
+		const { subtopic_id, ...fields } = values;
+		return dbClient
+			.update(book_subtopics)
+			.set(fields)
+			.where(eq(book_subtopics.subtopic_id, subtopic_id))
+			.returning();
+	},
+	deleteSubTopic: async ({ dbClient, subtopic_id }: DeleteSubTopicArgs) => {
+		return dbClient
+			.delete(book_subtopics)
+			.where(eq(book_subtopics.subtopic_id, subtopic_id))
+			.returning();
+	},
 };
+

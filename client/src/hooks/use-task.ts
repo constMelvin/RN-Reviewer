@@ -1,5 +1,4 @@
 import { TASKS_KEY } from '@/constant/queryKeys'
-import { client } from '@/lib/client'
 import type { CreateTaskInput, Task, UpdateTask } from '@/@types/task'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
@@ -33,11 +32,6 @@ export function useCreateTasks() {
       try {
         const { data } = await api.post('/v1/tasks/create-task', newTask)
         return data
-
-        // const res = await client.api.v1.tasks['create-task'].$post({
-        //   json: newTask,
-        // })
-        // return await res.json()
       } catch (error: any) {
         throw error.response?.data?.message || 'Something went wrong'
       }
@@ -68,7 +62,14 @@ export function useCreateTasks() {
       queryClient.setQueryData(TASKS_KEY, context?.previousTasks)
     },
     onSuccess(data) {
-      alert(`${data.task_name} Successfully added.`)
+      sileo.success({
+        description: `${data.task_name} Successfully added.`,
+        fill: 'white',
+        position: 'top-center',
+        styles: {
+          description: 'text-black!',
+        },
+      })
     },
 
     onSettled: () => queryClient.invalidateQueries({ queryKey: TASKS_KEY }),
@@ -80,11 +81,10 @@ export function useUpdateTasks() {
   return useMutation<TResponse, Error, UpdateTask, TContext>({
     mutationFn: async (updatedTask: UpdateTask) => {
       try {
-        const res = await client.api.v1.tasks['update-task'][':id'].$put({
-          json: { task_isComplete: updatedTask.task_isComplete },
-          param: { id: updatedTask.task_id },
-        })
-        const data = await res.json()
+        const { data } = await api.put(
+          `/v1/tasks/update-task/${updatedTask.task_id}`,
+          updatedTask,
+        )
         return data
       } catch (error: any) {
         throw error.response?.data?.message || 'Something went wrong'
@@ -107,10 +107,52 @@ export function useUpdateTasks() {
     onError(_err, _newTask, context) {
       queryClient.setQueryData(TASKS_KEY, context?.previousTasks)
     },
-    onSuccess(data) {
-      const text = data.task_isComplete
-        ? `${data.task_name} Mark as Done!`
-        : `${data.task_name} Mark as Undone!`
+    onSuccess() {
+      const text = 'Task updated Successfully.'
+      sileo.success({
+        fill: 'white',
+        position: 'top-center',
+        description: text,
+        duration: 2000,
+        styles: {
+          description: 'text-black!',
+        },
+      })
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: TASKS_KEY })
+    },
+  })
+}
+
+export function useDeleteTask() {
+  const queryClient = useQueryClient()
+  return useMutation<TResponse, Error, string, TContext>({
+    mutationFn: async (task_id: string) => {
+      try {
+        const { data } = await api.delete(`/v1/tasks/delete-task/${task_id}`)
+        return data
+      } catch (error: any) {
+        throw error.response?.data?.message || 'Something went wrong'
+      }
+    },
+    onMutate: async (task_id: string) => {
+      await queryClient.cancelQueries({ queryKey: TASKS_KEY })
+
+      const previousTasks = queryClient.getQueryData<Task[]>(TASKS_KEY) || []
+
+      queryClient.setQueryData<Task[]>(
+        TASKS_KEY,
+        previousTasks.filter((t) => t.task_id !== task_id),
+      )
+
+      return { previousTasks }
+    },
+    onError(_err, _task_id, context) {
+      queryClient.setQueryData(TASKS_KEY, context?.previousTasks)
+    },
+    onSuccess() {
+      const text = 'Task deleted Successfully.'
       sileo.success({
         fill: 'white',
         position: 'top-center',

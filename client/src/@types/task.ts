@@ -27,5 +27,8 @@ export type CreateTaskInput = {
 export type UpdateTask = {
   task_id: string
   task_name: string
+  task_type: 'Lecture' | 'Pre-Intensive' | 'Post Test'
+  task_date: string
+  task_link: string
   task_isComplete: boolean
 }

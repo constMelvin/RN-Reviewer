@@ -1,13 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-
-<<<<<<<< HEAD:client/src/pages/register.tsx
 import { Logo } from '@/pages/logo'
-import { Label } from '../components/ui/label'
-========
-import { Logo } from '@/components/pages/logo'
-import { Label } from '../ui/label'
->>>>>>>> main:client/src/components/pages/register.tsx
+import { Label } from '@/components/ui/label'
 import { useEffect, useState } from 'react'
 import { CheckIcon, EyeIcon, EyeOffIcon, LoaderIcon, XIcon } from 'lucide-react'
 import { Link } from '@tanstack/react-router'

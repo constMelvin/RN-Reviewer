@@ -62,32 +62,21 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { FcCalendar } from 'react-icons/fc'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
 import { format, differenceInDays } from 'date-fns'
-<<<<<<<< HEAD:client/src/pages/task-tracker.tsx
-import { Card, CardContent, CardTitle } from '../components/ui/card'
-import { TextLoop } from '../components/ui/text-loop'
-import { SlidingNumber } from '../components/ui/slider-number'
-import { useCreateTasks, useTasks, useUpdateTasks } from '@/hooks/use-task'
-========
-import { Card, CardContent, CardTitle } from '../ui/card'
-import { TextLoop } from '../ui/text-loop'
-import { SlidingNumber } from '../ui/slider-number'
+import { Card, CardContent, CardTitle } from '@/components/ui/card'
+import { TextLoop } from '@/components/ui/text-loop'
+import { SlidingNumber } from '@/components/ui/slider-number'
 import {
   useCreateTasks,
   useDeleteTask,
   useTasks,
   useUpdateTasks,
 } from '@/hooks/use-task'
->>>>>>>> main:client/src/components/pages/task-tracker.tsx
+
 import type { Task } from '@/@types/task'
 import { useAuthStore } from '@/store/authStore'
 import { Progress } from '@/components/ui/progress'
-import { TaskDialog } from '../TaskDialog'
+import { TaskDialog } from '@/components/TaskDialog'
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 

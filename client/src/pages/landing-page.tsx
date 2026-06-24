@@ -2,11 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-<<<<<<<< HEAD:client/src/pages/landing-page.tsx
 import { Logo } from '@/pages/logo'
-========
-import { Logo } from '@/components/pages/logo'
->>>>>>>> main:client/src/components/pages/landing-page.tsx
 import { Separator } from '@/components/ui/separator'
 import { Link } from '@tanstack/react-router'
 import { motion } from 'motion/react'

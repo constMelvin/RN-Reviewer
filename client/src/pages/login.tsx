@@ -11,11 +11,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
-<<<<<<<< HEAD:client/src/pages/login.tsx
 import { Logo } from '@/pages/logo'
-========
-import { Logo } from '@/components/pages/logo'
->>>>>>>> main:client/src/components/pages/login.tsx
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'

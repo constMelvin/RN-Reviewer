@@ -15,11 +15,8 @@ import {
   Award,
   Percent,
 } from 'lucide-react'
-<<<<<<<< HEAD:client/src/pages/score-task.tsx
-import { Card, CardContent, CardTitle } from '../components/ui/card'
-========
-import { Card, CardContent, CardTitle } from '../ui/card'
->>>>>>>> main:client/src/components/pages/score-task.tsx
+import { Card, CardContent, CardTitle } from '@/components/ui/card'
+
 import {
   Table,
   TableBody,
@@ -40,21 +37,10 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-<<<<<<<< HEAD:client/src/pages/score-task.tsx
-import { Button } from '../components/ui/button'
-import { Badge } from '../components/ui/badge'
-import { useCreateScore, useScore, type ScoreItem } from '@/hooks/use-score'
-========
-import { Button } from '../ui/button'
-import { Badge } from '../ui/badge'
-import {
-  useCreateScore,
-  useScore,
-  useEditScore,
-  useDeleteScore,
-  type ScoreItem,
-} from '@/hooks/use-score'
->>>>>>>> main:client/src/components/pages/score-task.tsx
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { useCreateScore, useDeleteScore, useEditScore, useScore, type ScoreItem } from '@/hooks/use-score'
+
 import {
   Dialog,
   DialogClose,
@@ -63,25 +49,16 @@ import {
   DialogFooter,
   DialogTitle,
   DialogTrigger,
-<<<<<<<< HEAD:client/src/pages/score-task.tsx
-} from '../components/ui/dialog'
-import { Label } from '../components/ui/label'
-import { Input } from '../components/ui/input'
-========
-} from '../ui/dialog'
-import { Label } from '../ui/label'
-import { Input } from '../ui/input'
->>>>>>>> main:client/src/components/pages/score-task.tsx
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-<<<<<<<< HEAD:client/src/pages/score-task.tsx
-} from '../components/ui/dropdown-menu'
-========
-} from '../ui/dropdown-menu'
->>>>>>>> main:client/src/components/pages/score-task.tsx
+} from '@/components/ui/dropdown-menu'
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 

@@ -1,7 +1,7 @@
-import AdminDashboard from '@/pages/admin/dashboard/AdminDashboard'
+import DatabaseMonitoring from '@/pages/admin/monitoring/DatabaseMonitoring'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/_protected/super-admin/dashboard')({
+export const Route = createFileRoute('/_protected/super-admin/database')({
   beforeLoad: ({ context }) => {
     if (!context.session) {
       throw redirect({ to: '/' })
@@ -10,5 +10,5 @@ export const Route = createFileRoute('/_protected/super-admin/dashboard')({
       throw redirect({ to: '/home' })
     }
   },
-  component: () => <AdminDashboard />,
+  component: () => <DatabaseMonitoring />,
 })

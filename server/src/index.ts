@@ -9,6 +9,12 @@ import {
   relaxedLimiter,
   securityMiddleware,
 } from "./middlewares/securityMiddleware";
+import { auditMiddleware } from "./middlewares/audit-middleware";
+import { trackRequest } from "./services/admin/monitoring.service";
+import {
+  captureMetricsSnapshot,
+  cleanupOldSnapshots,
+} from "./services/admin/monitoring.service";
 import userRoutes from "./controllers/users/user.route";
 import { cors } from "hono/cors";
 import { rootRoutes } from "./controllers/routes";
@@ -33,8 +39,20 @@ const app = new Hono<HonoEnv>()
   )
   .use(logger())
 
+  /* ---------- REQUEST METRICS TRACKING ---------- */
+  .use("*", async (c, next) => {
+    const start = Date.now();
+    await next();
+    const duration = Date.now() - start;
+    const isError = c.res.status >= 400;
+    trackRequest(duration, isError);
+  })
+
+  /* ---------- AUDIT LOGGING ---------- */
+  .use("/api/*", auditMiddleware)
+
   /* ---------- API ROUTES ---------- */
-  .on(["POST", "GET"], "/api/auth/**", (c) => auth.handler(c.req.raw))
+  .on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw))
   .route("/api/user", userRoutes)
   .route("/api/v1", rootRoutes)
   .get("/api/health", relaxedLimiter, (c: Context) => {
@@ -114,6 +132,28 @@ const app = new Hono<HonoEnv>()
 app.onError(errorHandlerMiddleware);
 
 console.log("Port:", envConfig.PORT);
+
+/* ---------- BACKGROUND METRICS COLLECTOR ---------- */
+// Capture system metrics every 60 seconds
+setInterval(() => {
+  captureMetricsSnapshot().catch((err) =>
+    console.error("[Metrics] Snapshot failed:", err)
+  );
+}, 60_000);
+
+// Cleanup old snapshots daily
+setInterval(() => {
+  cleanupOldSnapshots().catch((err) =>
+    console.error("[Metrics] Cleanup failed:", err)
+  );
+}, 24 * 60 * 60_000);
+
+// Initial snapshot on startup (after 5s delay)
+setTimeout(() => {
+  captureMetricsSnapshot().catch((err) =>
+    console.error("[Metrics] Initial snapshot failed:", err)
+  );
+}, 5_000);
 
 export type AppType = typeof app;
 export default {

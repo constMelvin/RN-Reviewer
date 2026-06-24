@@ -1,7 +1,7 @@
-import AdminDashboard from '@/pages/admin/dashboard/AdminDashboard'
+import AuditLogsPage from '@/pages/admin/security/AuditLogs'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/_protected/super-admin/dashboard')({
+export const Route = createFileRoute('/_protected/super-admin/audit-logs')({
   beforeLoad: ({ context }) => {
     if (!context.session) {
       throw redirect({ to: '/' })
@@ -10,5 +10,5 @@ export const Route = createFileRoute('/_protected/super-admin/dashboard')({
       throw redirect({ to: '/home' })
     }
   },
-  component: () => <AdminDashboard />,
+  component: () => <AuditLogsPage />,
 })

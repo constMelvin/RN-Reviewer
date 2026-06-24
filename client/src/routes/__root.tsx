@@ -3,6 +3,7 @@ import {
   createRootRouteWithContext,
   useLocation,
   useNavigate,
+  useRouterState,
 } from '@tanstack/react-router'
 // import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 // import { TanstackDevtools } from '@tanstack/react-devtools'
@@ -18,6 +19,7 @@ import type { RouterContext } from '@/@types/context'
 import CircuitBoardBackground from '@/components/CircuitBoardBackground'
 import { useSession } from '@/lib/auth-client'
 import { useEffect } from 'react'
+import NotFound from '@/pages/not-found'
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: () => {
@@ -28,13 +30,16 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     )
     const isLanding = location.pathname === '/' && !session
     const isSuperAdmin = location.pathname.startsWith('/super-admin')
+    const isNotFound = useRouterState({
+      select: (s) => s.matches.some((m) => m.status === 'notFound'),
+    })
     const hideSidebar = isAuthPage || isLanding || isSuperAdmin
     const navigate = useNavigate()
 
     useEffect(() => {
       if (
         session?.user?.username === 'superadmin' &&
-        !location.pathname.startsWith('/super-admin/dashboard')
+        !location.pathname.startsWith('/super-admin')
       ) {
         console.log('Super admin here __root')
         navigate({ to: '/super-admin/dashboard' })
@@ -92,6 +97,9 @@ export const Route = createRootRouteWithContext<RouterContext>()({
           </svg>
         </div>
       )
+
+    if (isNotFound) return <NotFound />
+
     return (
       <>
         <SidebarProvider>

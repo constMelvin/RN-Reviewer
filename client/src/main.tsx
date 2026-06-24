@@ -1,4 +1,4 @@
-import { StrictMode, useEffect } from 'react'
+import { StrictMode, useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { routeTree } from './routeTree.gen'
@@ -11,6 +11,81 @@ import { Toaster } from 'sileo'
 import { applyTheme } from '@/lib/themes'
 import type { ThemeName } from '@/lib/themes'
 
+import NotFound from '@/pages/not-found'
+
+function getLoadingMessage(elapsed: number) {
+  if (elapsed < 5) return 'Loading your session...'
+  if (elapsed < 15) return 'Starting up the server...'
+  if (elapsed < 45) return 'This can take up to a minute when the server is waking up.'
+  return 'Still starting up — hang tight, almost there...'
+}
+
+function AppLoadingScreen() {
+  const [elapsed, setElapsed] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => setElapsed((s) => s + 1), 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const showWaitHint = elapsed >= 15
+
+  return (
+    <div className="fixed inset-0 flex flex-col items-center justify-center gap-8 bg-background px-6 text-center">
+      <style>
+        {`@keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        @keyframes spin2 {
+          0% { stroke-dasharray: 1, 800; stroke-dashoffset: 0; }
+          50% { stroke-dasharray: 400, 400; stroke-dashoffset: -200px; }
+          100% { stroke-dasharray: 800, 1; stroke-dashoffset: -800px; }
+        }
+        .spin2 {
+          transform-origin: center;
+          animation: spin2 1.5s ease-in-out infinite, spin 2s linear infinite;
+          animation-direction: alternate;
+        }`}
+      </style>
+
+      <svg
+        viewBox="0 0 800 800"
+        className="h-14 w-14"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden
+      >
+        <circle
+          className="spin2 stroke-primary"
+          cx="400"
+          cy="400"
+          fill="none"
+          r="200"
+          strokeWidth="50"
+          strokeDasharray="700 1400"
+          strokeLinecap="round"
+        />
+      </svg>
+
+      <div className="max-w-md space-y-3">
+        <p className="text-lg font-semibold text-foreground">
+          {getLoadingMessage(elapsed)}
+        </p>
+        {showWaitHint && (
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            The server sleeps when idle and needs a moment to come back online.
+            Please keep this tab open.
+          </p>
+        )}
+        {elapsed >= 5 && (
+          <p className="text-xs tabular-nums text-muted-foreground">
+            Waiting {elapsed}s
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export const router = createRouter({
   routeTree,
   context: { session: null },
@@ -18,6 +93,7 @@ export const router = createRouter({
   scrollRestoration: true,
   defaultStructuralSharing: true,
   defaultPreloadStaleTime: 0,
+  defaultNotFoundComponent: () => <NotFound />,
 })
 
 function App() {
@@ -48,57 +124,7 @@ function App() {
     }
   }, [session])
 
-  if (isPending)
-    return (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <style>
-          {`@keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-      
-        @keyframes spin2 {
-          0% {
-            stroke-dasharray: 1, 800;
-            stroke-dashoffset: 0;
-          }
-          50% {
-            stroke-dasharray: 400, 400;
-            stroke-dashoffset: -200px;
-          }
-          100% {
-            stroke-dasharray: 800, 1;
-            stroke-dashoffset: -800px;
-          }
-        }
-      
-        .spin2 {
-          transform-origin: center;
-          animation: spin2 1.5s ease-in-out infinite,
-            spin 2s linear infinite;
-          animation-direction: alternate;
-        }`}
-        </style>
-
-        <svg
-          viewBox="0 0 800 800"
-          className="h-14 w-14"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <circle
-            className="spin2 stroke-primary"
-            cx="400"
-            cy="400"
-            fill="none"
-            r="200"
-            strokeWidth="50"
-            strokeDasharray="700 1400"
-            strokeLinecap="round"
-          />
-        </svg>
-      </div>
-    )
+  if (isPending) return <AppLoadingScreen />
 
   return <RouterProvider router={router} context={{ session }} />
 }

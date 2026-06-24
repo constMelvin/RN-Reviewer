@@ -17,7 +17,14 @@ import { Route as ProtectedTaskTrackerRouteImport } from './routes/_protected/ta
 import { Route as ProtectedScoreTaskRouteImport } from './routes/_protected/score-task'
 import { Route as ProtectedReviewerRouteImport } from './routes/_protected/reviewer'
 import { Route as ProtectedHomeRouteImport } from './routes/_protected/home'
+import { Route as ProtectedSuperAdminUsersRouteImport } from './routes/_protected/super-admin/users'
+import { Route as ProtectedSuperAdminTrafficRouteImport } from './routes/_protected/super-admin/traffic'
+import { Route as ProtectedSuperAdminSecurityRouteImport } from './routes/_protected/super-admin/security'
+import { Route as ProtectedSuperAdminScoresRouteImport } from './routes/_protected/super-admin/scores'
+import { Route as ProtectedSuperAdminMonitoringRouteImport } from './routes/_protected/super-admin/monitoring'
+import { Route as ProtectedSuperAdminDatabaseRouteImport } from './routes/_protected/super-admin/database'
 import { Route as ProtectedSuperAdminDashboardRouteImport } from './routes/_protected/super-admin/dashboard'
+import { Route as ProtectedSuperAdminAuditLogsRouteImport } from './routes/_protected/super-admin/audit-logs'
 
 const ProtectedIndexRoute = ProtectedIndexRouteImport.update({
   id: '/_protected/',
@@ -59,10 +66,52 @@ const ProtectedHomeRoute = ProtectedHomeRouteImport.update({
   path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProtectedSuperAdminUsersRoute =
+  ProtectedSuperAdminUsersRouteImport.update({
+    id: '/_protected/super-admin/users',
+    path: '/super-admin/users',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ProtectedSuperAdminTrafficRoute =
+  ProtectedSuperAdminTrafficRouteImport.update({
+    id: '/_protected/super-admin/traffic',
+    path: '/super-admin/traffic',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ProtectedSuperAdminSecurityRoute =
+  ProtectedSuperAdminSecurityRouteImport.update({
+    id: '/_protected/super-admin/security',
+    path: '/super-admin/security',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ProtectedSuperAdminScoresRoute =
+  ProtectedSuperAdminScoresRouteImport.update({
+    id: '/_protected/super-admin/scores',
+    path: '/super-admin/scores',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ProtectedSuperAdminMonitoringRoute =
+  ProtectedSuperAdminMonitoringRouteImport.update({
+    id: '/_protected/super-admin/monitoring',
+    path: '/super-admin/monitoring',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ProtectedSuperAdminDatabaseRoute =
+  ProtectedSuperAdminDatabaseRouteImport.update({
+    id: '/_protected/super-admin/database',
+    path: '/super-admin/database',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ProtectedSuperAdminDashboardRoute =
   ProtectedSuperAdminDashboardRouteImport.update({
     id: '/_protected/super-admin/dashboard',
     path: '/super-admin/dashboard',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ProtectedSuperAdminAuditLogsRoute =
+  ProtectedSuperAdminAuditLogsRouteImport.update({
+    id: '/_protected/super-admin/audit-logs',
+    path: '/super-admin/audit-logs',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -75,7 +124,14 @@ export interface FileRoutesByFullPath {
   '/login': typeof PublicLoginRoute
   '/sign-up': typeof PublicSignUpRoute
   '/': typeof ProtectedIndexRoute
+  '/super-admin/audit-logs': typeof ProtectedSuperAdminAuditLogsRoute
   '/super-admin/dashboard': typeof ProtectedSuperAdminDashboardRoute
+  '/super-admin/database': typeof ProtectedSuperAdminDatabaseRoute
+  '/super-admin/monitoring': typeof ProtectedSuperAdminMonitoringRoute
+  '/super-admin/scores': typeof ProtectedSuperAdminScoresRoute
+  '/super-admin/security': typeof ProtectedSuperAdminSecurityRoute
+  '/super-admin/traffic': typeof ProtectedSuperAdminTrafficRoute
+  '/super-admin/users': typeof ProtectedSuperAdminUsersRoute
 }
 export interface FileRoutesByTo {
   '/home': typeof ProtectedHomeRoute
@@ -86,7 +142,14 @@ export interface FileRoutesByTo {
   '/login': typeof PublicLoginRoute
   '/sign-up': typeof PublicSignUpRoute
   '/': typeof ProtectedIndexRoute
+  '/super-admin/audit-logs': typeof ProtectedSuperAdminAuditLogsRoute
   '/super-admin/dashboard': typeof ProtectedSuperAdminDashboardRoute
+  '/super-admin/database': typeof ProtectedSuperAdminDatabaseRoute
+  '/super-admin/monitoring': typeof ProtectedSuperAdminMonitoringRoute
+  '/super-admin/scores': typeof ProtectedSuperAdminScoresRoute
+  '/super-admin/security': typeof ProtectedSuperAdminSecurityRoute
+  '/super-admin/traffic': typeof ProtectedSuperAdminTrafficRoute
+  '/super-admin/users': typeof ProtectedSuperAdminUsersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,7 +161,14 @@ export interface FileRoutesById {
   '/_public/login': typeof PublicLoginRoute
   '/_public/sign-up': typeof PublicSignUpRoute
   '/_protected/': typeof ProtectedIndexRoute
+  '/_protected/super-admin/audit-logs': typeof ProtectedSuperAdminAuditLogsRoute
   '/_protected/super-admin/dashboard': typeof ProtectedSuperAdminDashboardRoute
+  '/_protected/super-admin/database': typeof ProtectedSuperAdminDatabaseRoute
+  '/_protected/super-admin/monitoring': typeof ProtectedSuperAdminMonitoringRoute
+  '/_protected/super-admin/scores': typeof ProtectedSuperAdminScoresRoute
+  '/_protected/super-admin/security': typeof ProtectedSuperAdminSecurityRoute
+  '/_protected/super-admin/traffic': typeof ProtectedSuperAdminTrafficRoute
+  '/_protected/super-admin/users': typeof ProtectedSuperAdminUsersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,7 +181,14 @@ export interface FileRouteTypes {
     | '/login'
     | '/sign-up'
     | '/'
+    | '/super-admin/audit-logs'
     | '/super-admin/dashboard'
+    | '/super-admin/database'
+    | '/super-admin/monitoring'
+    | '/super-admin/scores'
+    | '/super-admin/security'
+    | '/super-admin/traffic'
+    | '/super-admin/users'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/home'
@@ -122,7 +199,14 @@ export interface FileRouteTypes {
     | '/login'
     | '/sign-up'
     | '/'
+    | '/super-admin/audit-logs'
     | '/super-admin/dashboard'
+    | '/super-admin/database'
+    | '/super-admin/monitoring'
+    | '/super-admin/scores'
+    | '/super-admin/security'
+    | '/super-admin/traffic'
+    | '/super-admin/users'
   id:
     | '__root__'
     | '/_protected/home'
@@ -133,7 +217,14 @@ export interface FileRouteTypes {
     | '/_public/login'
     | '/_public/sign-up'
     | '/_protected/'
+    | '/_protected/super-admin/audit-logs'
     | '/_protected/super-admin/dashboard'
+    | '/_protected/super-admin/database'
+    | '/_protected/super-admin/monitoring'
+    | '/_protected/super-admin/scores'
+    | '/_protected/super-admin/security'
+    | '/_protected/super-admin/traffic'
+    | '/_protected/super-admin/users'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -145,7 +236,14 @@ export interface RootRouteChildren {
   PublicLoginRoute: typeof PublicLoginRoute
   PublicSignUpRoute: typeof PublicSignUpRoute
   ProtectedIndexRoute: typeof ProtectedIndexRoute
+  ProtectedSuperAdminAuditLogsRoute: typeof ProtectedSuperAdminAuditLogsRoute
   ProtectedSuperAdminDashboardRoute: typeof ProtectedSuperAdminDashboardRoute
+  ProtectedSuperAdminDatabaseRoute: typeof ProtectedSuperAdminDatabaseRoute
+  ProtectedSuperAdminMonitoringRoute: typeof ProtectedSuperAdminMonitoringRoute
+  ProtectedSuperAdminScoresRoute: typeof ProtectedSuperAdminScoresRoute
+  ProtectedSuperAdminSecurityRoute: typeof ProtectedSuperAdminSecurityRoute
+  ProtectedSuperAdminTrafficRoute: typeof ProtectedSuperAdminTrafficRoute
+  ProtectedSuperAdminUsersRoute: typeof ProtectedSuperAdminUsersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -206,11 +304,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedHomeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_protected/super-admin/users': {
+      id: '/_protected/super-admin/users'
+      path: '/super-admin/users'
+      fullPath: '/super-admin/users'
+      preLoaderRoute: typeof ProtectedSuperAdminUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_protected/super-admin/traffic': {
+      id: '/_protected/super-admin/traffic'
+      path: '/super-admin/traffic'
+      fullPath: '/super-admin/traffic'
+      preLoaderRoute: typeof ProtectedSuperAdminTrafficRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_protected/super-admin/security': {
+      id: '/_protected/super-admin/security'
+      path: '/super-admin/security'
+      fullPath: '/super-admin/security'
+      preLoaderRoute: typeof ProtectedSuperAdminSecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_protected/super-admin/scores': {
+      id: '/_protected/super-admin/scores'
+      path: '/super-admin/scores'
+      fullPath: '/super-admin/scores'
+      preLoaderRoute: typeof ProtectedSuperAdminScoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_protected/super-admin/monitoring': {
+      id: '/_protected/super-admin/monitoring'
+      path: '/super-admin/monitoring'
+      fullPath: '/super-admin/monitoring'
+      preLoaderRoute: typeof ProtectedSuperAdminMonitoringRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_protected/super-admin/database': {
+      id: '/_protected/super-admin/database'
+      path: '/super-admin/database'
+      fullPath: '/super-admin/database'
+      preLoaderRoute: typeof ProtectedSuperAdminDatabaseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_protected/super-admin/dashboard': {
       id: '/_protected/super-admin/dashboard'
       path: '/super-admin/dashboard'
       fullPath: '/super-admin/dashboard'
       preLoaderRoute: typeof ProtectedSuperAdminDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_protected/super-admin/audit-logs': {
+      id: '/_protected/super-admin/audit-logs'
+      path: '/super-admin/audit-logs'
+      fullPath: '/super-admin/audit-logs'
+      preLoaderRoute: typeof ProtectedSuperAdminAuditLogsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -225,7 +372,14 @@ const rootRouteChildren: RootRouteChildren = {
   PublicLoginRoute: PublicLoginRoute,
   PublicSignUpRoute: PublicSignUpRoute,
   ProtectedIndexRoute: ProtectedIndexRoute,
+  ProtectedSuperAdminAuditLogsRoute: ProtectedSuperAdminAuditLogsRoute,
   ProtectedSuperAdminDashboardRoute: ProtectedSuperAdminDashboardRoute,
+  ProtectedSuperAdminDatabaseRoute: ProtectedSuperAdminDatabaseRoute,
+  ProtectedSuperAdminMonitoringRoute: ProtectedSuperAdminMonitoringRoute,
+  ProtectedSuperAdminScoresRoute: ProtectedSuperAdminScoresRoute,
+  ProtectedSuperAdminSecurityRoute: ProtectedSuperAdminSecurityRoute,
+  ProtectedSuperAdminTrafficRoute: ProtectedSuperAdminTrafficRoute,
+  ProtectedSuperAdminUsersRoute: ProtectedSuperAdminUsersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

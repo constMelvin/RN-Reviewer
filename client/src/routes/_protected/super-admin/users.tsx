@@ -1,7 +1,7 @@
-import AdminDashboard from '@/pages/admin/dashboard/AdminDashboard'
+import UserManagement from '@/pages/admin/users/UserManagement'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/_protected/super-admin/dashboard')({
+export const Route = createFileRoute('/_protected/super-admin/users')({
   beforeLoad: ({ context }) => {
     if (!context.session) {
       throw redirect({ to: '/' })
@@ -10,5 +10,5 @@ export const Route = createFileRoute('/_protected/super-admin/dashboard')({
       throw redirect({ to: '/home' })
     }
   },
-  component: () => <AdminDashboard />,
+  component: () => <UserManagement />,
 })

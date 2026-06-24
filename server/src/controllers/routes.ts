@@ -5,6 +5,11 @@ import { topicsRoutes } from "./topics/route";
 import { subTopicsRoutes } from "./subtopics/route";
 import { agendaRoutes } from "./agenda/route";
 import { scoreRoutes } from "./scores/route";
+import { adminDashboardRoutes } from "./admin/admin-dashboard.routes";
+import { adminUsersRoutes } from "./admin/admin-users.routes";
+import { adminMonitoringRoutes } from "./admin/admin-monitoring.routes";
+import { adminSecurityRoutes } from "./admin/admin-security.routes";
+import { adminScoresRoutes } from "./admin/admin-scores.routes";
 
 export const rootRoutes = new Hono()
 	.route("/books", bookRoutes)
@@ -12,4 +17,9 @@ export const rootRoutes = new Hono()
 	.route("/topic", topicsRoutes)
 	.route("/sub-topics", subTopicsRoutes)
 	.route("/agenda", agendaRoutes)
-	.route("/score", scoreRoutes);
+	.route("/score", scoreRoutes)
+	.route("/admin/dashboard", adminDashboardRoutes)
+	.route("/admin/users", adminUsersRoutes)
+	.route("/admin/monitoring", adminMonitoringRoutes)
+	.route("/admin/security", adminSecurityRoutes)
+	.route("/admin/scores", adminScoresRoutes);

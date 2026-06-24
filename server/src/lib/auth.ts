@@ -7,6 +7,7 @@ import { envConfig } from "../env";
 
 const frontendUrls = envConfig.FRONTEND_URL.split(",").map(u => u.trim());
 const primaryFrontend = frontendUrls[0];
+const isProduction = process.env.NODE_ENV === "production";
 
 export const auth = betterAuth({
     database: drizzleAdapter(createDbClient(), {
@@ -21,13 +22,13 @@ export const auth = betterAuth({
     trustHost: true,
     baseURL: envConfig.BETTER_AUTH_URL,
     advanced: {
-        useSecureCookies: true,
+        useSecureCookies: isProduction,
         crossSubDomainCookies: {
             enabled: false,
         },
         defaultCookieAttributes: {
-            secure: true,
-            sameSite: "none",
+            secure: isProduction,
+            sameSite: isProduction ? "none" : "lax",
             httpOnly: true,
             path: "/",
         },

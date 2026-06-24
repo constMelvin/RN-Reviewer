@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { index, uuid } from "drizzle-orm/pg-core";
+import { index, uuid, jsonb, real } from "drizzle-orm/pg-core";
 import {
   pgTable,
   text,
@@ -213,5 +213,95 @@ export const bookSubtopicsRelations = relations(book_subtopics, ({ one }) => ({
   topic: one(book_topics, {
     fields: [book_subtopics.topic_id],
     references: [book_topics.topic_id],
+  }),
+}));
+
+// ─── SUPER ADMIN MONITORING TABLES ───────────────────────────────────────────
+
+export const audit_logs = pgTable(
+  "audit_logs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    user_id: text("user_id").references(() => user.id, { onDelete: "set null" }),
+    action: text("action").notNull(), // LOGIN, LOGOUT, CREATE_BOOK, UPDATE_TOPIC, SUBMIT_SCORE, REGISTER, FAILED_LOGIN, etc.
+    entity_type: text("entity_type"), // user, book, topic, score, task, etc.
+    entity_id: text("entity_id"),
+    metadata: jsonb("metadata"), // action-specific details
+    ip_address: text("ip_address"),
+    user_agent: text("user_agent"),
+    method: text("method"), // HTTP method
+    path: text("path"), // request path
+    status_code: integer("status_code"),
+    created_at: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("audit_logs_user_id_idx").on(table.user_id),
+    index("audit_logs_action_idx").on(table.action),
+    index("audit_logs_created_at_idx").on(table.created_at),
+  ],
+);
+
+export const system_metrics_snapshots = pgTable(
+  "system_metrics_snapshots",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    cpu_usage: real("cpu_usage").default(0).notNull(),
+    memory_usage: real("memory_usage").default(0).notNull(),
+    memory_total: real("memory_total").default(0).notNull(),
+    heap_used: real("heap_used").default(0).notNull(),
+    heap_total: real("heap_total").default(0).notNull(),
+    active_connections: integer("active_connections").default(0).notNull(),
+    requests_per_minute: integer("requests_per_minute").default(0).notNull(),
+    avg_response_time_ms: real("avg_response_time_ms").default(0).notNull(),
+    error_count: integer("error_count").default(0).notNull(),
+    uptime_seconds: real("uptime_seconds").default(0).notNull(),
+    db_pool_size: integer("db_pool_size").default(0).notNull(),
+    db_pool_available: integer("db_pool_available").default(0).notNull(),
+    created_at: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("system_metrics_created_at_idx").on(table.created_at),
+  ],
+);
+
+export const security_events = pgTable(
+  "security_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    event_type: text("event_type").notNull(), // BRUTE_FORCE_ATTEMPT, RATE_LIMIT_EXCEEDED, SUSPICIOUS_AGENT, CONCURRENT_SESSIONS, etc.
+    severity: text("severity").notNull().default("info"), // critical, warning, info
+    source_ip: text("source_ip"),
+    user_id: text("user_id").references(() => user.id, { onDelete: "set null" }),
+    details: text("details"),
+    resolved: boolean("resolved").default(false).notNull(),
+    resolved_by: text("resolved_by").references(() => user.id, { onDelete: "set null" }),
+    resolved_at: timestamp("resolved_at"),
+    created_at: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("security_events_severity_idx").on(table.severity),
+    index("security_events_resolved_idx").on(table.resolved),
+    index("security_events_created_at_idx").on(table.created_at),
+  ],
+);
+
+// Relations for new tables
+export const auditLogsRelations = relations(audit_logs, ({ one }) => ({
+  user: one(user, {
+    fields: [audit_logs.user_id],
+    references: [user.id],
+  }),
+}));
+
+export const securityEventsRelations = relations(security_events, ({ one }) => ({
+  user: one(user, {
+    fields: [security_events.user_id],
+    references: [user.id],
+    relationName: "securityEventUser",
+  }),
+  resolver: one(user, {
+    fields: [security_events.resolved_by],
+    references: [user.id],
+    relationName: "securityEventResolver",
   }),
 }));

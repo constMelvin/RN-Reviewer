@@ -122,16 +122,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             isActive={isActive}
             handleLogout={handleLogout}
           />
-          {/* Collapse toggle */}
-          <button
-            onClick={() => setCollapsed((c) => !c)}
-            className="mt-2 flex items-center justify-center rounded-xl border border-slate-200 py-1.5 text-xs text-slate-400 hover:bg-slate-100 dark:border-slate-800 dark:hover:bg-slate-800/60"
-          >
-            <ChevronLeft
-              size={14}
-              className={`transition-transform ${collapsed ? 'rotate-180' : ''}`}
-            />
-          </button>
         </aside>
 
         {/* Mobile Drawer */}

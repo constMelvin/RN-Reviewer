@@ -161,7 +161,7 @@ export default function AuditLogsPage() {
             </div>
           ) : (
             <>
-              <div className="space-y-2">
+              <div className="space-y-2 overflow-y-auto pr-2 max-h-[380px]">
                 {logsData.logs.map((log) => (
                   <div
                     key={log.id}
